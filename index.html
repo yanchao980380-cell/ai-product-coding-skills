@@ -288,6 +288,9 @@
     .ai-chat-title .lucide { color: var(--color-accent); }
     .ai-chat-actions { display: flex; align-items: center; gap: 6px; min-width: 0; }
     .chat-toggle { width: 32px; height: 32px; background: transparent; }
+    .chat-undo { width: 32px; height: 32px; background: transparent; }
+    .chat-undo:disabled { opacity: 0.35; cursor: not-allowed; }
+    #chatModelStatusText { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .chat-toggle .chat-collapse-icon { display: inline; }
     .chat-toggle .chat-expand-icon { display: none; }
     .chat-collapsed .chat-toggle .chat-collapse-icon { display: none; }
@@ -311,19 +314,20 @@
     .ai-message.assistant { align-self: flex-start; }
     .ai-message.error { border-color: var(--color-danger); color: var(--color-danger); }
     .ai-chat-form { display: grid; gap: 8px; padding: 10px 14px 12px; border-top: 1px solid var(--color-border); }
-    .ai-chat-row { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px; }
-    .chat-select, .chat-topic, .chat-points {
+    .chat-prompt {
       width: 100%;
+      height: 70px;
+      padding: 9px 42px 9px 10px;
       border: 1px solid var(--color-border);
       border-radius: 6px;
       background: var(--color-input);
       color: var(--color-text);
       font-size: 11px;
+      line-height: 1.55;
+      resize: none;
     }
-    .chat-select, .chat-topic { height: 34px; padding: 0 9px; }
-    .chat-points { height: 54px; padding: 8px 42px 8px 9px; line-height: 1.5; resize: none; }
-    .chat-select:focus, .chat-topic:focus, .chat-points:focus { border-color: var(--color-accent); outline: 0; background: var(--color-surface); }
-    .chat-topic::placeholder, .chat-points::placeholder { color: var(--color-text-muted); opacity: 0.7; }
+    .chat-prompt:focus { border-color: var(--color-accent); outline: 0; background: var(--color-surface); }
+    .chat-prompt::placeholder { color: var(--color-text-muted); opacity: 0.7; }
     .chat-composer { position: relative; }
     .chat-submit {
       position: absolute;
@@ -645,7 +649,7 @@
       .project-block { gap: 6px; }
       .project-title { width: 36vw; }
       .toolbar .button { display: none; }
-      .ai-chat-row { grid-template-columns: 128px minmax(0, 1fr); }
+      #chatModelStatusText { max-width: 112px; }
       .field-grid, .meta-row { grid-template-columns: 1fr; }
       .field.full { grid-column: auto; }
       .pane-inner { padding-inline: 14px; }
@@ -762,29 +766,19 @@
                 <div class="ai-chat-title"><i data-lucide="sparkles"></i><span>AI PRD 助手</span></div>
                 <div class="ai-chat-actions">
                   <button class="model-status-button" id="chatModelStatus" type="button"><span class="model-status-dot"></span><span id="chatModelStatusText">未配置模型</span><i data-lucide="chevron-right"></i></button>
+                  <button class="icon-button chat-undo" id="chatUndo" type="button" aria-label="撤销上次 AI 生成" title="撤销上次 AI 生成" disabled><i data-lucide="undo-2"></i></button>
                   <button class="icon-button chat-toggle" id="chatToggle" type="button" aria-label="展开 AI 对话" aria-expanded="false" title="展开 AI 对话">
                     <i class="chat-expand-icon" data-lucide="chevron-up"></i><i class="chat-collapse-icon" data-lucide="chevron-down"></i>
                   </button>
                 </div>
               </header>
               <div class="ai-chat-messages" id="chatMessages" aria-live="polite">
-                <div class="ai-message assistant">选择要补充的章节，输入主题和要点。</div>
+                <div class="ai-message assistant">输入产品主题或需求说明，生成完整 PRD Markdown。</div>
               </div>
               <form class="ai-chat-form" id="aiChatForm">
-                <div class="ai-chat-row">
-                  <select class="chat-select" id="chatSection" aria-label="写入章节">
-                    <option value="background">1. 背景和场景</option>
-                    <option value="goal">2. 目标</option>
-                    <option value="scope">3. 需求范围</option>
-                    <option value="flow">4. 流程</option>
-                    <option value="analytics">5. 埋点</option>
-                    <option value="standards">6. 标准和指标</option>
-                  </select>
-                  <input class="chat-topic" id="chatTopic" aria-label="主题" placeholder="主题，例如：首次使用转化" autocomplete="off">
-                </div>
                 <div class="chat-composer">
-                  <textarea class="chat-points" id="chatPoints" aria-label="要点" placeholder="输入关键场景、约束或指标；Ctrl + Enter 发送"></textarea>
-                  <button class="chat-submit" id="chatSubmit" type="submit" aria-label="生成并写入章节" title="生成并写入章节">
+                  <textarea class="chat-prompt" id="chatPrompt" aria-label="产品主题或需求说明" placeholder="输入一段产品主题或需求说明；Ctrl + Enter 生成完整 PRD"></textarea>
+                  <button class="chat-submit" id="chatSubmit" type="submit" aria-label="生成完整 PRD" title="生成完整 PRD">
                     <i class="chat-send-icon" data-lucide="arrow-up"></i><i class="chat-loader" data-lucide="loader-circle"></i>
                   </button>
                 </div>
@@ -862,46 +856,6 @@
       deepseek: { label: "DeepSeek", endpoint: "https://api.deepseek.com/chat/completions", model: "deepseek-chat" },
       custom: { label: "自定义中转站", endpoint: "", model: "" }
     };
-    const PRD_SECTIONS = {
-      background: {
-        index: 1,
-        title: "背景和场景",
-        aliases: ["背景和场景", "背景", "场景"],
-        template: "- 用户与场景：\n- 当前问题：\n- 触发时机："
-      },
-      goal: {
-        index: 2,
-        title: "目标",
-        aliases: ["目标", "产品目标"],
-        template: "- 用户目标：\n- 业务目标：\n- 非目标："
-      },
-      scope: {
-        index: 3,
-        title: "需求范围",
-        aliases: ["需求范围", "范围", "功能范围"],
-        template: "- 输入：\n- 核心能力：\n- 输出：\n- 约束：\n- MVP 不包含："
-      },
-      flow: {
-        index: 4,
-        title: "流程",
-        aliases: ["流程", "用户流程", "核心流程"],
-        template: "- 主流程：\n- 异常与空状态：\n- 失败后的动作："
-      },
-      analytics: {
-        index: 5,
-        title: "埋点",
-        aliases: ["埋点", "数据埋点", "事件埋点"],
-        template: "| 事件 | 触发时机 | 必要属性 |\n| --- | --- | --- |\n| feature_view | 进入功能 | entry |"
-      },
-      standards: {
-        index: 6,
-        title: "标准和指标",
-        aliases: ["标准和指标", "标准与指标", "验收标准", "指标"],
-        template: "- 功能验收：\n- AI 质量：\n- 性能：\n- 业务指标：\n- 风险指标："
-      }
-    };
-    const PRD_SECTION_ORDER = Object.keys(PRD_SECTIONS);
-
     const blankState = () => ({
       title: "未命名产品需求",
       owner: "",
@@ -1013,6 +967,7 @@
     let state = parseMarkdown(markdownDraft);
     let modelConfig = loadModelConfig();
     let chatController = null;
+    const aiGenerationHistory = [];
     let saveTimer;
     let toastTimer;
 
@@ -1341,7 +1296,7 @@
       button.setAttribute("aria-expanded", String(expanded));
       button.setAttribute("aria-label", expanded ? "收起 AI 对话" : "展开 AI 对话");
       button.title = expanded ? "收起 AI 对话" : "展开 AI 对话";
-      if (expanded) window.setTimeout(() => document.getElementById("chatTopic").focus(), 0);
+      if (expanded) window.setTimeout(() => document.getElementById("chatPrompt").focus(), 0);
     }
 
     function setChatError(message) {
@@ -1412,21 +1367,75 @@
       closeModelSettings();
     }
 
-    function buildSectionMessages(sectionKey, topic, points) {
-      const section = PRD_SECTIONS[sectionKey];
-      const systemPrompt = `你是一名资深 AI 产品经理。请根据用户提供的主题、要点和当前 PRD，只完善指定章节。
-只输出该章节的 Markdown，不要解释，不要使用代码围栏，也不要输出其他章节。
-章节标题和字段必须严格使用以下格式：
+    function buildGenerationMessages(prompt) {
+      const systemPrompt = `你是一名资深 AI 产品经理。请把用户输入的产品主题或需求说明整理成超精简、可开发、可验收的中文 PRD。
+只输出完整的 Markdown 正文，不要解释，不要使用代码围栏。必须严格包含以下结构和字段：
 
-## ${section.index}. ${section.title}
+# 产品需求名称
 
-${section.template}
+负责人：待补充
+版本：MVP
 
-内容要精简、可开发、可验收。缺失信息可做最小合理假设，并明确标注“假设”。指标尽量使用可衡量阈值；涉及 AI 时考虑输入校验、模型失败、时延、成本或额度、安全与隐私。`;
+## 1. 背景和场景
+- 用户与场景：
+- 当前问题：
+- 触发时机：
+
+## 2. 目标
+- 用户目标：
+- 业务目标：
+- 非目标：
+
+## 3. 需求范围
+- 输入：
+- 核心能力：
+- 输出：
+- 约束：
+- MVP 不包含：
+
+## 4. 流程
+- 主流程：
+- 异常与空状态：
+- 失败后的动作：
+
+## 5. 埋点
+| 事件 | 触发时机 | 必要属性 |
+| --- | --- | --- |
+| feature_view | 进入功能 | entry |
+| feature_submit | 提交任务 | input_type, plan |
+| feature_result | 结果返回 | status, latency_ms |
+| feature_export | 使用结果 | export_type |
+| feature_error | 任务失败 | error_code, retryable |
+
+## 6. 标准和指标
+- 功能验收：
+- AI 质量：
+- 性能：
+- 业务指标：
+- 风险指标：
+
+缺失信息可做最小合理假设，并明确标注“假设”。指标尽量使用可衡量阈值；涉及 AI 时考虑输入校验、模型失败、时延、成本或额度、安全与隐私。`;
       return [
         { role: "system", content: systemPrompt },
-        { role: "user", content: `主题：${topic}\n\n要点：\n${points}\n\n当前 PRD：\n${markdownDraft || "（空白）"}` }
+        { role: "user", content: prompt }
       ];
+    }
+
+    function updateUndoButton() {
+      document.getElementById("chatUndo").disabled = Boolean(chatController) || aiGenerationHistory.length === 0;
+    }
+
+    function clearAiHistory() {
+      aiGenerationHistory.length = 0;
+      updateUndoButton();
+    }
+
+    function undoAiGeneration() {
+      if (!aiGenerationHistory.length || chatController) return;
+      const previousMarkdown = aiGenerationHistory.pop();
+      setMarkdownContent(previousMarkdown, "已撤销上次 AI 生成");
+      appendChatMessage("assistant", "已恢复生成前的 Markdown。");
+      updateUndoButton();
     }
 
     function setChatBusy(busy) {
@@ -1434,9 +1443,8 @@ ${section.template}
       button.disabled = busy;
       button.classList.toggle("loading", busy);
       document.getElementById("chatModelStatus").disabled = busy;
-      document.getElementById("chatSection").disabled = busy;
-      document.getElementById("chatTopic").disabled = busy;
-      document.getElementById("chatPoints").disabled = busy;
+      document.getElementById("chatPrompt").disabled = busy;
+      document.getElementById("chatUndo").disabled = busy || aiGenerationHistory.length === 0;
     }
 
     function generationErrorMessage(error, status) {
@@ -1445,54 +1453,6 @@ ${section.template}
       if (status === 429) return "请求过于频繁或额度不足，请稍后重试。";
       if (error instanceof TypeError) return "无法连接模型接口，请检查地址、网络和 CORS 设置。";
       return (error.message || "生成失败，请检查模型设置后重试。").slice(0, 180);
-    }
-
-    function headingSectionKey(line) {
-      const match = line.match(/^##(?!#)\s+(.+)$/);
-      if (!match) return "";
-      const title = match[1].replace(/^\d+\s*[.、)]\s*/, "").trim();
-      return PRD_SECTION_ORDER.find((key) => PRD_SECTIONS[key].aliases.includes(title)) || "";
-    }
-
-    function normalizeGeneratedSection(markdown, sectionKey) {
-      const section = PRD_SECTIONS[sectionKey];
-      const clean = markdown.trim().replace(/^```(?:markdown)?\s*/i, "").replace(/\s*```$/, "");
-      const lines = clean.replace(/\r\n/g, "\n").split("\n");
-      const firstHeading = lines.findIndex((line) => /^##(?!#)\s+/.test(line));
-      let body = lines;
-      if (firstHeading >= 0) {
-        const nextHeading = lines.findIndex((line, index) => index > firstHeading && /^##(?!#)\s+/.test(line));
-        body = lines.slice(firstHeading + 1, nextHeading >= 0 ? nextHeading : undefined);
-      }
-      const bodyText = body.join("\n").trim();
-      if (!bodyText) throw new Error("模型没有返回可用的章节内容。");
-      return `## ${section.index}. ${section.title}\n\n${bodyText}\n`;
-    }
-
-    function replacePrdSection(markdown, sectionKey, generatedSection) {
-      const lines = markdown.replace(/\r\n/g, "\n").split("\n");
-      const targetIndex = PRD_SECTIONS[sectionKey].index;
-      let start = -1;
-      let end = lines.length;
-      let insertionPoint = lines.length;
-
-      for (let index = 0; index < lines.length; index += 1) {
-        const foundKey = headingSectionKey(lines[index]);
-        if (!foundKey) continue;
-        if (foundKey === sectionKey) {
-          start = index;
-          end = lines.findIndex((line, nextIndex) => nextIndex > index && /^##(?!#)\s+/.test(line));
-          if (end < 0) end = lines.length;
-          break;
-        }
-        if (start < 0 && PRD_SECTIONS[foundKey].index > targetIndex && insertionPoint === lines.length) {
-          insertionPoint = index;
-        }
-      }
-
-      if (start >= 0) lines.splice(start, end - start, generatedSection);
-      else lines.splice(insertionPoint, 0, generatedSection);
-      return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
     }
 
     function appendChatMessage(role, text) {
@@ -1505,30 +1465,37 @@ ${section.template}
       return message;
     }
 
-    function selectGeneratedSection(sectionKey) {
+    function focusGeneratedMarkdown() {
       const editor = document.getElementById("markdownEditor");
-      const heading = `## ${PRD_SECTIONS[sectionKey].index}. ${PRD_SECTIONS[sectionKey].title}`;
-      const start = editor.value.indexOf(heading);
-      if (start < 0) return;
-      const next = editor.value.indexOf("\n## ", start + heading.length);
       editor.focus();
-      editor.setSelectionRange(start, next < 0 ? editor.value.length : next);
+      editor.setSelectionRange(0, 0);
+      editor.scrollTop = 0;
     }
 
-    async function generateSectionWithModel(event) {
-      event.preventDefault();
-      const sectionKey = document.getElementById("chatSection").value;
-      const section = PRD_SECTIONS[sectionKey];
-      const topic = document.getElementById("chatTopic").value.trim();
-      const points = document.getElementById("chatPoints").value.trim();
-      if (!topic) {
-        setChatError("请先填写主题。");
-        document.getElementById("chatTopic").focus();
-        return;
+    function normalizeGeneratedPrd(markdown) {
+      const clean = markdown.trim().replace(/^```(?:markdown)?\s*/i, "").replace(/\s*```$/, "");
+      const lines = clean.replace(/\r\n/g, "\n").split("\n");
+      const firstTitle = lines.findIndex((line) => /^#(?!#)\s+\S/.test(line));
+      return (firstTitle >= 0 ? lines.slice(firstTitle) : lines).join("\n").trim();
+    }
+
+    function validateGeneratedPrd(markdown) {
+      const expectedHeadings = ["背景和场景", "目标", "需求范围", "流程", "埋点", "标准和指标"];
+      const complete = expectedHeadings.every((title) => {
+        const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        return new RegExp(`^##\\s*(?:\\d+\\s*[.、)]\\s*)?${escaped}\\s*$`, "m").test(markdown);
+      });
+      if (!/^#(?!#)\s+\S/m.test(markdown) || !complete) {
+        throw new Error("模型返回的 PRD 不完整，请重试。");
       }
-      if (!points) {
-        setChatError("请至少填写一个要点。");
-        document.getElementById("chatPoints").focus();
+    }
+
+    async function generatePrdWithModel(event) {
+      event.preventDefault();
+      const prompt = document.getElementById("chatPrompt").value.trim();
+      if (!prompt) {
+        setChatError("请输入产品主题或需求说明。");
+        document.getElementById("chatPrompt").focus();
         return;
       }
       if (!updateModelStatus()) {
@@ -1538,8 +1505,8 @@ ${section.template}
       }
 
       setChatError("");
-      appendChatMessage("user", `${section.title} · ${topic}\n${points}`);
-      const pendingMessage = appendChatMessage("assistant", `正在整理「${section.title}」...`);
+      appendChatMessage("user", prompt);
+      const pendingMessage = appendChatMessage("assistant", "正在生成完整 PRD...");
       setChatBusy(true);
       chatController = new AbortController();
       const timeout = window.setTimeout(() => chatController?.abort(), 120000);
@@ -1551,7 +1518,7 @@ ${section.template}
             "Content-Type": "application/json",
             "Authorization": `Bearer ${getModelApiKey()}`
           },
-          body: JSON.stringify({ model: modelConfig.model, messages: buildSectionMessages(sectionKey, topic, points), temperature: 0.2 }),
+          body: JSON.stringify({ model: modelConfig.model, messages: buildGenerationMessages(prompt), temperature: 0.2 }),
           signal: chatController.signal
         });
         responseStatus = response.status;
@@ -1560,13 +1527,15 @@ ${section.template}
         let content = payload.choices?.[0]?.message?.content;
         if (Array.isArray(content)) content = content.map((part) => part.text || "").join("");
         if (typeof content !== "string" || !content.trim()) throw new Error("模型没有返回可用内容。");
-        const generatedSection = normalizeGeneratedSection(content, sectionKey);
-        const updatedMarkdown = replacePrdSection(markdownDraft, sectionKey, generatedSection);
+        const generatedMarkdown = normalizeGeneratedPrd(content);
+        validateGeneratedPrd(generatedMarkdown);
+        aiGenerationHistory.push(markdownDraft);
         chatController = null;
-        setMarkdownContent(updatedMarkdown, `已更新「${section.title}」`);
-        pendingMessage.textContent = `已生成并写入「${section.title}」，可在上方继续编辑。`;
-        document.getElementById("chatPoints").value = "";
-        selectGeneratedSection(sectionKey);
+        setMarkdownContent(generatedMarkdown, "完整 PRD 已生成");
+        pendingMessage.textContent = "完整 PRD 已写入上方 Markdown，可继续编辑或撤销。";
+        document.getElementById("chatPrompt").value = "";
+        focusGeneratedMarkdown();
+        updateUndoButton();
       } catch (error) {
         const message = generationErrorMessage(error, responseStatus);
         pendingMessage.textContent = message;
@@ -1645,14 +1614,18 @@ ${section.template}
     document.getElementById("menuModelSettingsButton").addEventListener("click", openModelSettings);
     document.getElementById("chatModelStatus").addEventListener("click", openModelSettings);
     document.getElementById("chatToggle").addEventListener("click", toggleAiChat);
-    document.getElementById("aiChatForm").addEventListener("submit", generateSectionWithModel);
-    document.getElementById("chatPoints").addEventListener("keydown", (event) => {
+    document.getElementById("chatUndo").addEventListener("click", undoAiGeneration);
+    document.getElementById("aiChatForm").addEventListener("submit", generatePrdWithModel);
+    document.getElementById("chatPrompt").addEventListener("keydown", (event) => {
       if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
         event.preventDefault();
         document.getElementById("aiChatForm").requestSubmit();
       }
     });
-    document.getElementById("menuExampleButton").addEventListener("click", () => setMarkdownContent(DEFAULT_MARKDOWN, "已恢复默认脱敏案例"));
+    document.getElementById("menuExampleButton").addEventListener("click", () => {
+      clearAiHistory();
+      setMarkdownContent(DEFAULT_MARKDOWN, "已恢复默认脱敏案例");
+    });
     document.getElementById("copyButton").addEventListener("click", copyMarkdown);
     document.getElementById("menuCopyButton").addEventListener("click", copyMarkdown);
     document.getElementById("previewCopyButton").addEventListener("click", copyMarkdown);
@@ -1680,9 +1653,15 @@ ${section.template}
       if (event.key !== "Escape") return;
       if (document.getElementById("modelSettingsModal").classList.contains("open")) closeModelSettings();
     });
-    document.getElementById("blankButton").addEventListener("click", () => setMarkdownContent(blankMarkdown(), "已新建空白 PRD"));
+    document.getElementById("blankButton").addEventListener("click", () => {
+      clearAiHistory();
+      setMarkdownContent(blankMarkdown(), "已新建空白 PRD");
+    });
     document.getElementById("clearButton").addEventListener("click", () => {
-      if (window.confirm("确认清空当前 PRD？该操作无法撤销。")) setMarkdownContent("", "当前 PRD 已清空");
+      if (window.confirm("确认清空当前 PRD？该操作无法撤销。")) {
+        clearAiHistory();
+        setMarkdownContent("", "当前 PRD 已清空");
+      }
     });
     document.getElementById("moreButton").addEventListener("click", (event) => {
       event.stopPropagation();
