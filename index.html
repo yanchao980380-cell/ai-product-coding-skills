@@ -407,6 +407,76 @@
       padding: 0 20px;
       border-top: 1px solid var(--color-border);
     }
+    .modal.compact { width: min(620px, 100%); }
+    .modal-field-stack { display: grid; gap: 15px; }
+    .select-input { appearance: auto; }
+    .secret-field { position: relative; }
+    .secret-field .text-input { padding-right: 44px; }
+    .secret-toggle {
+      position: absolute;
+      top: 2px;
+      right: 2px;
+      width: 36px;
+      height: 36px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--color-text-muted);
+      cursor: pointer;
+    }
+    .secret-toggle:hover { color: var(--color-text); background: var(--color-surface-strong); }
+    .model-status-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 0 10px;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-input);
+      color: var(--color-text-muted);
+      font-size: 11px;
+      cursor: pointer;
+    }
+    .model-status-button:hover { border-color: var(--color-border-strong); color: var(--color-text); }
+    .model-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-secondary); }
+    .model-status-button.configured .model-status-dot { background: var(--color-success); }
+    .generate-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
+    .generate-label { color: var(--color-text-muted); font-size: 11px; font-weight: 600; }
+    .generate-textarea { min-height: 230px; }
+    .segmented {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid var(--color-border);
+      border-radius: 7px;
+      background: var(--color-input);
+    }
+    .segment {
+      min-height: 34px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .segment.active { background: var(--color-surface-strong); color: var(--color-text); }
+    .generation-error {
+      display: none;
+      margin-top: 10px;
+      padding: 9px 10px;
+      border-left: 2px solid var(--color-danger);
+      background: var(--color-input);
+      color: var(--color-danger);
+      font-size: 11px;
+      line-height: 1.6;
+    }
+    .generation-error.show { display: block; }
+    .button.loading svg { animation: spin 900ms linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .sidebar-backdrop { display: none; }
     .toast {
@@ -504,7 +574,9 @@
       .modal { width: 100%; height: 100%; max-height: none; border: 0; border-radius: 0; }
       .modal-body { padding: 14px; }
       .modal-textarea { min-height: calc(100vh - 178px); resize: none; }
+      .generate-textarea { min-height: 230px; resize: vertical; }
       .modal-footer { padding-inline: 14px; }
+      .generate-topline { align-items: flex-start; flex-direction: column; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -573,12 +645,17 @@
         </div>
         <div class="toolbar">
           <button class="icon-button" id="themeToggle" type="button" aria-label="切换明暗主题" title="切换主题"><i data-lucide="sun-moon"></i></button>
+          <button class="icon-button" id="modelSettingsButton" type="button" aria-label="模型设置" title="模型设置"><i data-lucide="settings-2"></i></button>
+          <button class="button primary" id="aiGenerateButton" type="button"><i data-lucide="wand-sparkles"></i><span class="button-label">AI 生成</span></button>
           <button class="button" id="importButton" type="button"><i data-lucide="clipboard-paste"></i><span class="button-label">粘贴 Markdown</span></button>
-          <button class="button primary" id="copyButton" type="button"><i data-lucide="copy"></i><span class="button-label">复制 PRD</span></button>
+          <button class="button" id="copyButton" type="button"><i data-lucide="copy"></i><span class="button-label">复制 PRD</span></button>
           <button class="icon-button" id="moreButton" type="button" aria-label="更多操作" aria-expanded="false"><i data-lucide="ellipsis"></i></button>
         </div>
         <div class="menu" id="moreMenu">
+          <button id="menuAiGenerateButton" type="button"><i data-lucide="wand-sparkles"></i>AI 生成 PRD</button>
           <button id="menuImportButton" type="button"><i data-lucide="clipboard-paste"></i>粘贴 Markdown</button>
+          <button id="menuModelSettingsButton" type="button"><i data-lucide="settings-2"></i>模型设置</button>
+          <div class="menu-divider"></div>
           <button id="menuExampleButton" type="button"><i data-lucide="sparkles"></i>载入 AI 换脸示例</button>
           <button id="menuCopyButton" type="button"><i data-lucide="copy"></i>复制 PRD</button>
           <button id="menuThemeButton" type="button"><i data-lucide="sun-moon"></i>切换明暗主题</button>
@@ -729,11 +806,89 @@
     </section>
   </div>
 
+  <div class="modal-backdrop" id="generateModal" aria-hidden="true">
+    <section class="modal compact" role="dialog" aria-modal="true" aria-labelledby="generateModalTitle">
+      <header class="modal-header">
+        <h2 class="modal-title" id="generateModalTitle">AI 生成 PRD</h2>
+        <button class="icon-button" id="closeGenerateModal" type="button" aria-label="关闭 AI 生成窗口"><i data-lucide="x"></i></button>
+      </header>
+      <div class="modal-body">
+        <div class="generate-topline">
+          <span class="generate-label">需求类型</span>
+          <button class="model-status-button" id="generateModelStatus" type="button"><span class="model-status-dot"></span><span id="generateModelStatusText">未配置模型</span><i data-lucide="chevron-right"></i></button>
+        </div>
+        <div class="segmented" role="group" aria-label="需求类型">
+          <button class="segment active" type="button" data-generation-mode="mvp" aria-pressed="true">新产品 MVP</button>
+          <button class="segment" type="button" data-generation-mode="iteration" aria-pressed="false">日常功能迭代</button>
+        </div>
+        <label class="field" style="margin-top: 16px">
+          <span class="field-label">产品想法或原始需求 <span class="required">*</span></span>
+          <textarea class="modal-textarea generate-textarea" id="generationBrief" placeholder="例如：在 ChatArt App 中增加 AI 换脸功能，用户上传源人脸和目标图片后生成换脸结果。免费用户每天可体验 2 次。"></textarea>
+        </label>
+        <p class="modal-note">点击生成会将上述需求发送给当前配置的模型服务商。</p>
+        <div class="generation-error" id="generationError" role="alert"></div>
+      </div>
+      <footer class="modal-footer">
+        <button class="button" id="cancelGeneration" type="button">取消</button>
+        <button class="button primary" id="confirmGeneration" type="button"><i data-lucide="loader-circle"></i><span id="generationButtonText">生成 PRD</span></button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="modelSettingsModal" aria-hidden="true">
+    <section class="modal compact" role="dialog" aria-modal="true" aria-labelledby="modelSettingsTitle">
+      <header class="modal-header">
+        <h2 class="modal-title" id="modelSettingsTitle">模型设置</h2>
+        <button class="icon-button" id="closeModelSettings" type="button" aria-label="关闭模型设置"><i data-lucide="x"></i></button>
+      </header>
+      <div class="modal-body">
+        <div class="modal-field-stack">
+          <label class="field">
+            <span class="field-label">服务商</span>
+            <select class="text-input select-input" id="modelProvider">
+              <option value="openai">OpenAI</option>
+              <option value="deepseek">DeepSeek</option>
+              <option value="custom">自定义兼容接口</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">Chat Completions 地址 <span class="required">*</span></span>
+            <input class="text-input" id="modelEndpoint" type="url" placeholder="https://api.openai.com/v1/chat/completions">
+          </label>
+          <label class="field">
+            <span class="field-label">模型名称 <span class="required">*</span></span>
+            <input class="text-input" id="modelName" placeholder="例如：gpt-4.1-mini">
+          </label>
+          <label class="field">
+            <span class="field-label">API Key <span class="required">*</span></span>
+            <span class="secret-field">
+              <input class="text-input" id="modelApiKey" type="password" autocomplete="off" placeholder="sk-...">
+              <button class="secret-toggle" id="toggleApiKey" type="button" aria-label="显示 API Key" title="显示或隐藏 API Key"><i data-lucide="eye"></i></button>
+            </span>
+          </label>
+        </div>
+        <p class="modal-note">服务商和模型配置保存在本机；API Key 仅保留在当前浏览器会话。线上接口需使用 HTTPS 并允许浏览器跨域。</p>
+        <div class="generation-error" id="settingsError" role="alert"></div>
+      </div>
+      <footer class="modal-footer">
+        <button class="button" id="cancelModelSettings" type="button">取消</button>
+        <button class="button primary" id="saveModelSettings" type="button"><i data-lucide="check"></i>保存设置</button>
+      </footer>
+    </section>
+  </div>
+
   <div class="toast" id="toast" role="status"><i data-lucide="check-circle-2"></i><span id="toastText">已完成</span></div>
 
   <script>
     const STORAGE_KEY = "ai-pm-workbench-prd-v1";
     const THEME_KEY = "ai-pm-workbench-theme";
+    const MODEL_CONFIG_KEY = "ai-pm-workbench-model-v1";
+    const MODEL_SECRET_KEY = "ai-pm-workbench-model-key";
+    const MODEL_PRESETS = {
+      openai: { label: "OpenAI", endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4.1-mini" },
+      deepseek: { label: "DeepSeek", endpoint: "https://api.deepseek.com/chat/completions", model: "deepseek-chat" },
+      custom: { label: "自定义", endpoint: "", model: "" }
+    };
 
     const blankState = () => ({
       title: "未命名产品需求",
@@ -796,6 +951,10 @@
     };
 
     let state = loadState();
+    let modelConfig = loadModelConfig();
+    let generationMode = "mvp";
+    let generationController = null;
+    let settingsReturnToGenerate = false;
     let saveTimer;
     let toastTimer;
 
@@ -806,6 +965,23 @@
         return mergeState(blankState(), JSON.parse(saved));
       } catch (error) {
         return blankState();
+      }
+    }
+
+    function loadModelConfig() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(MODEL_CONFIG_KEY) || "null");
+        return { provider: "openai", ...MODEL_PRESETS.openai, ...(saved || {}) };
+      } catch (error) {
+        return { provider: "openai", ...MODEL_PRESETS.openai };
+      }
+    }
+
+    function getModelApiKey() {
+      try {
+        return sessionStorage.getItem(MODEL_SECRET_KEY) || "";
+      } catch (error) {
+        return "";
       }
     }
 
@@ -1196,6 +1372,244 @@ ${analyticsRows}
       toggleMobilePreview(false);
     }
 
+    let generateModalTrigger = null;
+    let settingsModalTrigger = null;
+
+    function setModalOpen(id, open) {
+      const modal = document.getElementById(id);
+      modal.classList.toggle("open", open);
+      modal.setAttribute("aria-hidden", String(!open));
+    }
+
+    function closeMoreMenu() {
+      document.getElementById("moreMenu").classList.remove("open");
+      document.getElementById("moreButton").setAttribute("aria-expanded", "false");
+    }
+
+    function updateModelStatus() {
+      const configured = Boolean(modelConfig.endpoint && modelConfig.model && getModelApiKey());
+      const status = document.getElementById("generateModelStatus");
+      status.classList.toggle("configured", configured);
+      document.getElementById("generateModelStatusText").textContent = configured
+        ? `${MODEL_PRESETS[modelConfig.provider]?.label || "自定义"} · ${modelConfig.model}`
+        : "未配置模型";
+      document.getElementById("modelSettingsButton").title = configured ? `模型设置：${modelConfig.model}` : "模型设置";
+      return configured;
+    }
+
+    function setGenerationError(message) {
+      const error = document.getElementById("generationError");
+      error.textContent = message;
+      error.classList.toggle("show", Boolean(message));
+    }
+
+    function setSettingsError(message) {
+      const error = document.getElementById("settingsError");
+      error.textContent = message;
+      error.classList.toggle("show", Boolean(message));
+    }
+
+    function openGenerateModal() {
+      generateModalTrigger = document.activeElement;
+      closeMoreMenu();
+      setGenerationError("");
+      updateModelStatus();
+      setModalOpen("generateModal", true);
+      window.setTimeout(() => document.getElementById("generationBrief").focus(), 0);
+    }
+
+    function closeGenerateModal() {
+      if (generationController) generationController.abort();
+      setModalOpen("generateModal", false);
+      if (generateModalTrigger) generateModalTrigger.focus();
+    }
+
+    function openModelSettings(fromGenerate = false) {
+      settingsModalTrigger = document.activeElement;
+      settingsReturnToGenerate = fromGenerate;
+      closeMoreMenu();
+      if (fromGenerate) setModalOpen("generateModal", false);
+      document.getElementById("modelProvider").value = modelConfig.provider || "custom";
+      document.getElementById("modelEndpoint").value = modelConfig.endpoint || "";
+      document.getElementById("modelName").value = modelConfig.model || "";
+      document.getElementById("modelApiKey").value = getModelApiKey();
+      document.getElementById("modelApiKey").type = "password";
+      setSettingsError("");
+      setModalOpen("modelSettingsModal", true);
+      window.setTimeout(() => document.getElementById("modelProvider").focus(), 0);
+    }
+
+    function closeModelSettings() {
+      setModalOpen("modelSettingsModal", false);
+      if (settingsReturnToGenerate) {
+        settingsReturnToGenerate = false;
+        openGenerateModal();
+      } else if (settingsModalTrigger) {
+        settingsModalTrigger.focus();
+      }
+    }
+
+    function saveModelSettings() {
+      const provider = document.getElementById("modelProvider").value;
+      const endpoint = document.getElementById("modelEndpoint").value.trim();
+      const model = document.getElementById("modelName").value.trim();
+      const apiKey = document.getElementById("modelApiKey").value.trim();
+      if (!endpoint || !model || !apiKey) {
+        setSettingsError("请完整填写接口地址、模型名称和 API Key。");
+        return;
+      }
+      try {
+        const url = new URL(endpoint);
+        const isLocal = ["localhost", "127.0.0.1"].includes(url.hostname);
+        if (url.protocol !== "https:" && !isLocal) throw new Error("线上接口必须使用 HTTPS。");
+      } catch (error) {
+        setSettingsError(error.message === "线上接口必须使用 HTTPS。" ? error.message : "请输入完整、有效的接口地址。");
+        return;
+      }
+      modelConfig = { provider, endpoint, model };
+      try {
+        localStorage.setItem(MODEL_CONFIG_KEY, JSON.stringify(modelConfig));
+        sessionStorage.setItem(MODEL_SECRET_KEY, apiKey);
+      } catch (error) {
+        setSettingsError("浏览器无法保存设置，请检查隐私模式或存储权限。");
+        return;
+      }
+      updateModelStatus();
+      showToast("模型设置已保存");
+      closeModelSettings();
+    }
+
+    function buildGenerationMessages(brief) {
+      const typeInstruction = generationMode === "mvp"
+        ? "这是新产品 MVP，只保留验证核心价值必需的范围。"
+        : "这是日常功能迭代，强调对现有流程的影响、兼容和上线验证。";
+      const systemPrompt = `你是一名资深 AI 产品经理。请把用户需求整理成超精简、可开发、可验收的中文 PRD。
+只输出 Markdown 正文，不要解释，不要使用代码围栏。严格使用下面结构和字段名：
+
+# 产品需求名称
+
+负责人：待补充
+版本：MVP
+
+## 1. 背景和场景
+- 用户与场景：
+- 当前问题：
+- 触发时机：
+
+## 2. 目标
+- 用户目标：
+- 业务目标：
+- 非目标：
+
+## 3. 需求范围
+- 输入：
+- 核心能力：
+- 输出：
+- 约束：
+- MVP 不包含：
+
+## 4. 流程
+- 主流程：
+- 异常与空状态：
+- 失败后的动作：
+
+## 5. 埋点
+| 事件 | 触发时机 | 必要属性 |
+| --- | --- | --- |
+| feature_view | 进入功能 | entry |
+| feature_submit | 提交任务 | input_type, plan |
+| feature_result | 结果返回 | status, latency_ms |
+| feature_export | 使用结果 | export_type |
+| feature_error | 任务失败 | error_code, retryable |
+
+## 6. 标准和指标
+- 功能验收：
+- AI 质量：
+- 性能：
+- 业务指标：
+- 风险指标：
+
+把缺失信息作为最小合理假设写入对应字段，并标注“假设”。指标使用可衡量阈值。涉及 AI 时覆盖输入校验、模型失败、时延、成本或额度、安全与隐私。`;
+      return [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `${typeInstruction}\n\n原始需求：\n${brief}` }
+      ];
+    }
+
+    function setGenerationBusy(busy) {
+      const button = document.getElementById("confirmGeneration");
+      button.disabled = busy;
+      button.classList.toggle("loading", busy);
+      document.getElementById("generationButtonText").textContent = busy ? "生成中..." : "生成 PRD";
+      document.getElementById("generateModelStatus").disabled = busy;
+      document.getElementById("generationBrief").disabled = busy;
+    }
+
+    function generationErrorMessage(error, status) {
+      if (error.name === "AbortError") return "请求已取消或超过 120 秒，请重试。";
+      if (status === 401 || status === 403) return "认证失败，请检查 API Key 和模型权限。";
+      if (status === 429) return "请求过于频繁或额度不足，请稍后重试。";
+      if (error instanceof TypeError) return "无法连接模型接口，请检查地址、网络和 CORS 设置。";
+      return (error.message || "生成失败，请检查模型设置后重试。").slice(0, 180);
+    }
+
+    async function generatePrdWithModel() {
+      const brief = document.getElementById("generationBrief").value.trim();
+      if (!brief) {
+        setGenerationError("请先填写产品想法或原始需求。");
+        document.getElementById("generationBrief").focus();
+        return;
+      }
+      if (!updateModelStatus()) {
+        openModelSettings(true);
+        return;
+      }
+
+      setGenerationError("");
+      setGenerationBusy(true);
+      generationController = new AbortController();
+      const timeout = window.setTimeout(() => generationController?.abort(), 120000);
+      let responseStatus = 0;
+      try {
+        const response = await fetch(modelConfig.endpoint, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getModelApiKey()}`
+          },
+          body: JSON.stringify({ model: modelConfig.model, messages: buildGenerationMessages(brief), temperature: 0.2 }),
+          signal: generationController.signal
+        });
+        responseStatus = response.status;
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(payload.error?.message || `模型接口返回 ${response.status}`);
+        let markdown = payload.choices?.[0]?.message?.content;
+        if (Array.isArray(markdown)) markdown = markdown.map((part) => part.text || "").join("");
+        if (typeof markdown !== "string" || !markdown.trim()) throw new Error("模型没有返回可用内容。");
+        markdown = markdown.trim().replace(/^```(?:markdown)?\s*/i, "").replace(/\s*```$/, "");
+        const generated = parseMarkdown(markdown);
+        const recognizedSections = [
+          generated.background.userScenario,
+          generated.goal.userGoal,
+          generated.scope.capability,
+          generated.flow.main,
+          generated.standards.functional
+        ].filter(Boolean).length;
+        if (recognizedSections < 3) throw new Error("模型返回的 PRD 结构无法识别，请重试或使用 Markdown 导入。");
+        generationController = null;
+        hydrate(generated, "AI PRD 已生成，可继续编辑");
+        document.getElementById("generationBrief").value = "";
+        setModalOpen("generateModal", false);
+        toggleMobilePreview(false);
+      } catch (error) {
+        setGenerationError(generationErrorMessage(error, responseStatus));
+      } finally {
+        window.clearTimeout(timeout);
+        generationController = null;
+        setGenerationBusy(false);
+      }
+    }
+
     async function copyMarkdown() {
       try {
         await navigator.clipboard.writeText(buildMarkdown());
@@ -1258,6 +1672,10 @@ ${analyticsRows}
 
     document.getElementById("themeToggle").addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
     document.getElementById("menuThemeButton").addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
+    document.getElementById("aiGenerateButton").addEventListener("click", openGenerateModal);
+    document.getElementById("menuAiGenerateButton").addEventListener("click", openGenerateModal);
+    document.getElementById("modelSettingsButton").addEventListener("click", () => openModelSettings(false));
+    document.getElementById("menuModelSettingsButton").addEventListener("click", () => openModelSettings(false));
     document.getElementById("importButton").addEventListener("click", openMarkdownModal);
     document.getElementById("menuImportButton").addEventListener("click", openMarkdownModal);
     document.getElementById("menuExampleButton").addEventListener("click", () => hydrate(faceSwapExample, "已载入 AI 换脸 PRD 示例"));
@@ -1272,8 +1690,46 @@ ${analyticsRows}
     document.getElementById("markdownModal").addEventListener("click", (event) => {
       if (event.target === event.currentTarget) closeMarkdownModal();
     });
+    document.getElementById("closeGenerateModal").addEventListener("click", closeGenerateModal);
+    document.getElementById("cancelGeneration").addEventListener("click", closeGenerateModal);
+    document.getElementById("confirmGeneration").addEventListener("click", generatePrdWithModel);
+    document.getElementById("generateModelStatus").addEventListener("click", () => openModelSettings(true));
+    document.getElementById("generateModal").addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) closeGenerateModal();
+    });
+    document.querySelectorAll("[data-generation-mode]").forEach((button) => {
+      button.addEventListener("click", () => {
+        generationMode = button.dataset.generationMode;
+        document.querySelectorAll("[data-generation-mode]").forEach((option) => {
+          const active = option === button;
+          option.classList.toggle("active", active);
+          option.setAttribute("aria-pressed", String(active));
+        });
+      });
+    });
+    document.getElementById("closeModelSettings").addEventListener("click", closeModelSettings);
+    document.getElementById("cancelModelSettings").addEventListener("click", closeModelSettings);
+    document.getElementById("saveModelSettings").addEventListener("click", saveModelSettings);
+    document.getElementById("modelSettingsModal").addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) closeModelSettings();
+    });
+    document.getElementById("modelProvider").addEventListener("change", (event) => {
+      const preset = MODEL_PRESETS[event.target.value];
+      document.getElementById("modelEndpoint").value = preset.endpoint;
+      document.getElementById("modelName").value = preset.model;
+      setSettingsError("");
+    });
+    document.getElementById("toggleApiKey").addEventListener("click", (event) => {
+      const input = document.getElementById("modelApiKey");
+      const show = input.type === "password";
+      input.type = show ? "text" : "password";
+      event.currentTarget.setAttribute("aria-label", show ? "隐藏 API Key" : "显示 API Key");
+    });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && document.getElementById("markdownModal").classList.contains("open")) closeMarkdownModal();
+      if (event.key !== "Escape") return;
+      if (document.getElementById("modelSettingsModal").classList.contains("open")) closeModelSettings();
+      else if (document.getElementById("generateModal").classList.contains("open")) closeGenerateModal();
+      else if (document.getElementById("markdownModal").classList.contains("open")) closeMarkdownModal();
     });
     document.getElementById("blankButton").addEventListener("click", () => hydrate(blankState(), "已新建空白 PRD"));
     document.getElementById("clearButton").addEventListener("click", () => {
@@ -1307,6 +1763,7 @@ ${analyticsRows}
     bindForm();
     renderPreview();
     updateProgress();
+    updateModelStatus();
     lucide.createIcons();
   </script>
 </body>
