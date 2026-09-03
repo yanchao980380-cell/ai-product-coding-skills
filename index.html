@@ -233,6 +233,7 @@
     .pane-lead { max-width: 620px; margin-top: 8px; color: var(--color-text-muted); font-size: 12px; line-height: 1.7; }
     .editor-pane.markdown-mode { overflow: hidden; }
     .markdown-workspace { display: grid; grid-template-rows: 48px minmax(0, 1fr) minmax(250px, 1fr); width: 100%; height: 100%; min-height: 0; }
+    .markdown-workspace.chat-collapsed { grid-template-rows: 48px minmax(0, 1fr) 44px; }
     .markdown-editor-header {
       display: flex;
       align-items: center;
@@ -285,6 +286,14 @@
     }
     .ai-chat-title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; }
     .ai-chat-title .lucide { color: var(--color-accent); }
+    .ai-chat-actions { display: flex; align-items: center; gap: 6px; min-width: 0; }
+    .chat-toggle { width: 32px; height: 32px; background: transparent; }
+    .chat-toggle .chat-collapse-icon { display: inline; }
+    .chat-toggle .chat-expand-icon { display: none; }
+    .chat-collapsed .chat-toggle .chat-collapse-icon { display: none; }
+    .chat-collapsed .chat-toggle .chat-expand-icon { display: inline; }
+    .chat-collapsed .ai-chat { grid-template-rows: 44px; }
+    .chat-collapsed .ai-chat-messages, .chat-collapsed .ai-chat-form { display: none; }
     .ai-chat-messages { display: flex; flex-direction: column; gap: 8px; min-height: 0; padding: 12px 18px; overflow-y: auto; }
     .ai-message {
       width: fit-content;
@@ -622,6 +631,7 @@
       .markdown-editor-wrap { padding: 12px; }
       .markdown-editor { padding: 14px; font-size: 12px; }
       .markdown-workspace { grid-template-rows: 44px minmax(0, 1fr) minmax(280px, 0.9fr); }
+      .markdown-workspace.chat-collapsed { grid-template-rows: 44px minmax(0, 1fr) 44px; }
       .ai-chat-header { padding-inline: 12px; }
       .ai-chat-messages { padding: 10px 12px; }
       .ai-chat-form { padding: 9px 12px 10px; }
@@ -739,7 +749,7 @@
 
       <div class="work-area" id="workArea">
         <section class="editor-pane markdown-mode" aria-label="PRD Markdown 编辑器">
-          <div class="markdown-workspace">
+          <div class="markdown-workspace chat-collapsed" id="markdownWorkspace">
             <div class="markdown-editor-header">
               <div class="markdown-file"><i data-lucide="file-code-2"></i><span>PRD.md</span></div>
               <div class="markdown-stats" id="markdownStats">0 行 · 0 字</div>
@@ -750,7 +760,12 @@
             <section class="ai-chat" aria-label="AI PRD 对话助手">
               <header class="ai-chat-header">
                 <div class="ai-chat-title"><i data-lucide="sparkles"></i><span>AI PRD 助手</span></div>
-                <button class="model-status-button" id="chatModelStatus" type="button"><span class="model-status-dot"></span><span id="chatModelStatusText">未配置模型</span><i data-lucide="chevron-right"></i></button>
+                <div class="ai-chat-actions">
+                  <button class="model-status-button" id="chatModelStatus" type="button"><span class="model-status-dot"></span><span id="chatModelStatusText">未配置模型</span><i data-lucide="chevron-right"></i></button>
+                  <button class="icon-button chat-toggle" id="chatToggle" type="button" aria-label="展开 AI 对话" aria-expanded="false" title="展开 AI 对话">
+                    <i class="chat-expand-icon" data-lucide="chevron-up"></i><i class="chat-collapse-icon" data-lucide="chevron-down"></i>
+                  </button>
+                </div>
               </header>
               <div class="ai-chat-messages" id="chatMessages" aria-live="polite">
                 <div class="ai-message assistant">选择要补充的章节，输入主题和要点。</div>
@@ -806,11 +821,11 @@
             <select class="text-input select-input" id="modelProvider">
               <option value="openai">OpenAI</option>
               <option value="deepseek">DeepSeek</option>
-              <option value="custom">自定义兼容接口</option>
+              <option value="custom">自定义中转站</option>
             </select>
           </label>
           <label class="field">
-            <span class="field-label">Chat Completions 地址 <span class="required">*</span></span>
+            <span class="field-label">中转站 / Chat Completions 地址 <span class="required">*</span></span>
             <input class="text-input" id="modelEndpoint" type="url" placeholder="https://api.openai.com/v1/chat/completions">
           </label>
           <label class="field">
@@ -825,7 +840,7 @@
             </span>
           </label>
         </div>
-        <p class="modal-note">服务商和模型配置保存在本机；API Key 仅保留在当前浏览器会话。线上接口需使用 HTTPS 并允许浏览器跨域。</p>
+        <p class="modal-note">自定义中转站支持 HTTP 和 HTTPS，并需允许浏览器跨域；HTTPS 工作台调用 HTTP 地址时可能被浏览器安全策略拦截。API Key 仅保留在当前浏览器会话。</p>
         <div class="generation-error" id="settingsError" role="alert"></div>
       </div>
       <footer class="modal-footer">
@@ -845,7 +860,7 @@
     const MODEL_PRESETS = {
       openai: { label: "OpenAI", endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4.1-mini" },
       deepseek: { label: "DeepSeek", endpoint: "https://api.deepseek.com/chat/completions", model: "deepseek-chat" },
-      custom: { label: "自定义", endpoint: "", model: "" }
+      custom: { label: "自定义中转站", endpoint: "", model: "" }
     };
     const PRD_SECTIONS = {
       background: {
@@ -1312,10 +1327,21 @@
       const status = document.getElementById("chatModelStatus");
       status.classList.toggle("configured", configured);
       document.getElementById("chatModelStatusText").textContent = configured
-        ? `${MODEL_PRESETS[modelConfig.provider]?.label || "自定义"} · ${modelConfig.model}`
+        ? `${MODEL_PRESETS[modelConfig.provider]?.label || "自定义中转站"} · ${modelConfig.model}`
         : "未配置模型";
       document.getElementById("modelSettingsButton").title = configured ? `模型设置：${modelConfig.model}` : "模型设置";
       return configured;
+    }
+
+    function toggleAiChat() {
+      const workspace = document.getElementById("markdownWorkspace");
+      const expanded = workspace.classList.contains("chat-collapsed");
+      workspace.classList.toggle("chat-collapsed", !expanded);
+      const button = document.getElementById("chatToggle");
+      button.setAttribute("aria-expanded", String(expanded));
+      button.setAttribute("aria-label", expanded ? "收起 AI 对话" : "展开 AI 对话");
+      button.title = expanded ? "收起 AI 对话" : "展开 AI 对话";
+      if (expanded) window.setTimeout(() => document.getElementById("chatTopic").focus(), 0);
     }
 
     function setChatError(message) {
@@ -1357,12 +1383,19 @@
         setSettingsError("请完整填写接口地址、模型名称和 API Key。");
         return;
       }
+      let endpointUrl;
       try {
-        const url = new URL(endpoint);
-        const isLocal = ["localhost", "127.0.0.1"].includes(url.hostname);
-        if (url.protocol !== "https:" && !isLocal) throw new Error("线上接口必须使用 HTTPS。");
+        endpointUrl = new URL(endpoint);
       } catch (error) {
-        setSettingsError(error.message === "线上接口必须使用 HTTPS。" ? error.message : "请输入完整、有效的接口地址。");
+        setSettingsError("请输入完整、有效的接口地址。");
+        return;
+      }
+      if (!["http:", "https:"].includes(endpointUrl.protocol)) {
+        setSettingsError("接口地址仅支持 HTTP 或 HTTPS。");
+        return;
+      }
+      if (provider !== "custom" && endpointUrl.protocol !== "https:") {
+        setSettingsError("OpenAI 和 DeepSeek 官方接口必须使用 HTTPS。");
         return;
       }
       modelConfig = { provider, endpoint, model };
@@ -1374,7 +1407,8 @@
         return;
       }
       updateModelStatus();
-      showToast("模型设置已保存");
+      const mixedContentRisk = window.location.protocol === "https:" && endpointUrl.protocol === "http:";
+      showToast(mixedContentRisk ? "设置已保存；HTTP 请求可能被浏览器拦截" : "模型设置已保存");
       closeModelSettings();
     }
 
@@ -1610,6 +1644,7 @@ ${section.template}
     document.getElementById("modelSettingsButton").addEventListener("click", openModelSettings);
     document.getElementById("menuModelSettingsButton").addEventListener("click", openModelSettings);
     document.getElementById("chatModelStatus").addEventListener("click", openModelSettings);
+    document.getElementById("chatToggle").addEventListener("click", toggleAiChat);
     document.getElementById("aiChatForm").addEventListener("submit", generateSectionWithModel);
     document.getElementById("chatPoints").addEventListener("keydown", (event) => {
       if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
