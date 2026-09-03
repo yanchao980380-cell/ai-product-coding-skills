@@ -297,8 +297,7 @@
     .pane-heading { margin-top: 6px; font-size: 23px; line-height: 1.3; }
     .pane-lead { max-width: 620px; margin-top: 8px; color: var(--color-text-muted); font-size: 12px; line-height: 1.7; }
     .editor-pane.markdown-mode { overflow: hidden; }
-    .markdown-workspace { display: grid; grid-template-rows: 48px minmax(0, 1fr) minmax(250px, 1fr); width: 100%; height: 100%; min-height: 0; }
-    .markdown-workspace.chat-collapsed { grid-template-rows: 48px minmax(0, 1fr) 44px; }
+    .markdown-workspace, .markdown-workspace.chat-collapsed { display: grid; grid-template-rows: 48px minmax(0, 1fr); width: 100%; height: 100%; min-height: 0; }
     .markdown-editor-header {
       display: flex;
       align-items: center;
@@ -334,7 +333,7 @@
     .markdown-editor:hover { border-color: var(--color-border-strong); }
     .markdown-editor:focus { border-color: var(--color-accent); outline: 0; background: var(--color-surface); }
     .ai-chat {
-      display: grid;
+      display: none;
       grid-template-rows: 44px minmax(0, 1fr) auto;
       min-width: 0;
       min-height: 0;
@@ -529,6 +528,30 @@
     .doc-table th, .doc-table td { padding: 8px; border: 1px solid var(--color-border); text-align: left; vertical-align: top; overflow-wrap: anywhere; }
     .doc-table th { color: var(--color-text-muted); font-weight: 600; }
     .doc-table td.doc-editable:focus { outline-offset: -2px; }
+    .doc-source-line {
+      border-radius: 3px;
+      outline: 1px solid transparent;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+      transition: background 140ms ease, outline-color 140ms ease;
+      cursor: text;
+    }
+    .doc-source-line:hover { outline-color: var(--color-border-strong); }
+    .doc-source-line:focus { outline-color: var(--color-accent); background: var(--color-input); }
+    .doc-source-line:empty::before { content: attr(data-placeholder); color: var(--color-text-muted); }
+    h1.doc-source-line { margin: 8px 0 18px; padding: 2px 4px; font-size: 28px; line-height: 1.35; }
+    h2.doc-source-line { margin-top: 26px; padding: 2px 3px; font-size: 16px; line-height: 1.45; }
+    h3.doc-source-line, h4.doc-source-line, h5.doc-source-line, h6.doc-source-line { margin-top: 20px; padding: 2px 3px; font-size: 13px; line-height: 1.5; }
+    p.doc-source-line { margin-top: 9px; padding: 2px 3px; color: var(--color-text); font-size: 12px; line-height: 1.75; }
+    .doc-source-spacer { height: 7px; }
+    .doc-list-line { display: grid; grid-template-columns: 15px minmax(0, 1fr); gap: 5px; margin-top: 7px; font-size: 12px; line-height: 1.7; }
+    .doc-list-marker { padding-top: 2px; color: var(--color-accent); font-size: 10px; text-align: center; }
+    .doc-list-line .doc-source-line { padding: 1px 3px; }
+    .doc-quote { margin-top: 10px; padding: 7px 10px; border-left: 2px solid var(--color-accent); color: var(--color-text-muted); font-size: 12px; line-height: 1.7; }
+    .doc-code { margin-top: 12px; padding: 12px; overflow-x: auto; border: 1px solid var(--color-border); border-radius: 5px; background: var(--color-input); }
+    .doc-code .doc-source-line { min-height: 20px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11px; line-height: 1.65; }
+    .doc-divider { margin: 18px 0; border: 0; border-top: 1px solid var(--color-border); }
+    .doc-table th.doc-source-line, .doc-table td.doc-source-line { min-width: 90px; outline-offset: -2px; cursor: text; }
 
     .menu {
       position: absolute;
@@ -735,8 +758,7 @@
       .pane-inner { padding: 22px 18px 54px; overflow-x: hidden; }
       .markdown-editor-wrap { padding: 12px; }
       .markdown-editor { padding: 14px; font-size: 12px; }
-      .markdown-workspace { grid-template-rows: 44px minmax(0, 1fr) minmax(280px, 0.9fr); }
-      .markdown-workspace.chat-collapsed { grid-template-rows: 44px minmax(0, 1fr) 44px; }
+      .markdown-workspace, .markdown-workspace.chat-collapsed { grid-template-rows: 44px minmax(0, 1fr); }
       .ai-chat-header { padding-inline: 12px; }
       .ai-chat-messages { padding: 10px 12px; }
       .ai-chat-form { padding: 9px 12px 10px; }
@@ -848,7 +870,6 @@
           <button id="menuModelSettingsButton" type="button"><i data-lucide="settings-2"></i>模型设置</button>
           <div class="menu-divider"></div>
           <button id="menuExampleButton" type="button"><i data-lucide="sparkles"></i>恢复默认脱敏案例</button>
-          <button id="menuCopyButton" type="button"><i data-lucide="copy"></i>复制 PRD</button>
           <button id="menuThemeButton" type="button"><i data-lucide="sun-moon"></i>切换明暗主题</button>
           <div class="menu-divider"></div>
           <button id="downloadButton" type="button"><i data-lucide="download"></i>下载 Markdown</button>
@@ -905,7 +926,6 @@
             <div class="preview-label"><i data-lucide="eye"></i>实时预览</div>
             <div class="preview-actions">
               <button class="icon-button preview-fullscreen-button" id="previewFullscreenButton" type="button" aria-label="全屏预览" title="全屏预览"><i class="maximize-icon" data-lucide="maximize-2"></i><i class="minimize-icon" data-lucide="minimize-2"></i></button>
-              <button class="icon-button" id="previewCopyButton" type="button" aria-label="复制 PRD" title="复制 PRD"><i data-lucide="copy"></i></button>
               <button class="icon-button" id="previewDownloadButton" type="button" aria-label="下载 Markdown" title="下载 Markdown"><i data-lucide="download"></i></button>
             </div>
           </div>
@@ -1622,52 +1642,125 @@
       parent.appendChild(section);
     }
 
+    function createSourceEditable(tag, content, lineIndex, prefix = "", label = "编辑内容") {
+      const element = createElement(tag, "doc-source-line", content);
+      element.setAttribute("contenteditable", "plaintext-only");
+      element.setAttribute("role", "textbox");
+      element.setAttribute("aria-label", label);
+      element.setAttribute("spellcheck", "false");
+      element.dataset.mdLine = String(lineIndex);
+      element.dataset.mdPrefix = prefix;
+      element.dataset.placeholder = "点击输入内容";
+      return element;
+    }
+
+    function parseTableCells(line) {
+      const trimmed = line.trim().replace(/^\|/, "").replace(/\|$/, "");
+      return trimmed.split("|").map((cell) => cell.trim());
+    }
+
+    function isTableLine(line) {
+      return /^\s*\|.*\|\s*$/.test(line);
+    }
+
+    function isTableSeparator(line) {
+      const cells = parseTableCells(line);
+      return cells.length > 0 && cells.every((cell) => /^:?-{3,}:?$/.test(cell));
+    }
+
+    function appendMarkdownTable(doc, lines, startIndex) {
+      const table = createElement("table", "doc-table");
+      const thead = document.createElement("thead");
+      const tbody = document.createElement("tbody");
+      let index = startIndex;
+      let rowNumber = 0;
+      while (index < lines.length && isTableLine(lines[index])) {
+        if (isTableSeparator(lines[index])) {
+          index += 1;
+          continue;
+        }
+        const row = document.createElement("tr");
+        parseTableCells(lines[index]).forEach((cell, columnIndex) => {
+          const tag = rowNumber === 0 ? "th" : "td";
+          const editable = createSourceEditable(tag, cell, index, "", `编辑表格第 ${rowNumber + 1} 行第 ${columnIndex + 1} 列`);
+          editable.dataset.mdTableColumn = String(columnIndex);
+          row.appendChild(editable);
+        });
+        (rowNumber === 0 ? thead : tbody).appendChild(row);
+        rowNumber += 1;
+        index += 1;
+      }
+      table.append(thead, tbody);
+      doc.appendChild(table);
+      return index;
+    }
+
     function renderPreview() {
       const doc = document.getElementById("documentPreview");
+      const previousScroll = document.querySelector(".preview-pane").scrollTop;
       doc.replaceChildren();
       document.getElementById("projectTitle").textContent = textOrEmpty(state.title);
       doc.appendChild(createElement("div", "doc-label", "PRODUCT REQUIREMENT DOCUMENT"));
-      doc.appendChild(makePreviewEditable(createElement("h1", "doc-title"), state.title, { previewKind: "title" }, "编辑 PRD 标题"));
-      const meta = createElement("div", "doc-meta");
-      const owner = createElement("span");
-      owner.append("负责人：", makePreviewEditable(createElement("span"), state.owner, { previewKind: "meta", previewLabel: "负责人" }, "编辑负责人"));
-      const version = createElement("span");
-      version.append("版本：", makePreviewEditable(createElement("span"), state.version, { previewKind: "meta", previewLabel: "版本" }, "编辑版本"));
-      meta.append(owner, version);
-      meta.append(createElement("span", "", `更新：${new Date().toLocaleDateString("zh-CN")}`));
-      doc.appendChild(meta);
-
-      addDocSection(doc, "01", "背景和场景", "background", [["用户与场景", state.background.userScenario], ["当前问题", state.background.problem], ["触发时机", state.background.trigger]]);
-      addDocSection(doc, "02", "目标", "goal", [["用户目标", state.goal.userGoal], ["业务目标", state.goal.businessGoal], ["非目标", state.goal.nonGoal]]);
-      addDocSection(doc, "03", "需求范围", "scope", [["输入", state.scope.inputs], ["核心能力", state.scope.capability], ["输出", state.scope.outputs], ["约束", state.scope.constraints], ["MVP 不包含", state.scope.outScope]]);
-      addDocSection(doc, "04", "流程", "flow", [["主流程", state.flow.main], ["异常与空状态", state.flow.exceptions], ["失败后的动作", state.flow.recovery]]);
-
-      const analyticsSection = createElement("section", "doc-section");
-      const analyticsHead = createElement("div", "doc-section-head");
-      analyticsHead.append(createElement("span", "doc-section-index", "05"), createElement("h2", "", "埋点"));
-      analyticsSection.appendChild(analyticsHead);
-      const table = createElement("table", "doc-table");
-      const thead = document.createElement("thead");
-      const headRow = document.createElement("tr");
-      ["事件", "触发时机", "必要属性"].forEach((label) => headRow.appendChild(createElement("th", "", label)));
-      thead.appendChild(headRow);
-      const tbody = document.createElement("tbody");
-      state.analytics.forEach((row, rowIndex) => {
-        const tr = document.createElement("tr");
-        [["event", row.event], ["trigger", row.trigger], ["properties", row.properties]].forEach(([column, value]) => {
-          tr.appendChild(makePreviewEditable(createElement("td"), value, {
-            previewKind: "analytics",
-            previewRow: String(rowIndex),
-            previewColumn: column
-          }, `编辑埋点第 ${rowIndex + 1} 行${column}`));
-        });
-        tbody.appendChild(tr);
-      });
-      table.append(thead, tbody);
-      analyticsSection.appendChild(table);
-      doc.appendChild(analyticsSection);
-
-      addDocSection(doc, "06", "标准和指标", "standards", [["功能验收", state.standards.functional], ["AI 质量", state.standards.quality], ["性能", state.standards.performance], ["业务指标", state.standards.business], ["风险指标", state.standards.risk]]);
+      const lines = markdownDraft.replace(/\r\n?/g, "\n").split("\n");
+      let index = 0;
+      while (index < lines.length) {
+        const line = lines[index];
+        if (!line.trim()) {
+          if (lines.length === 1) doc.appendChild(createSourceEditable("p", "", 0, "", "编辑段落内容"));
+          else doc.appendChild(createElement("div", "doc-source-spacer"));
+          index += 1;
+          continue;
+        }
+        if (isTableLine(line) && index + 1 < lines.length && isTableSeparator(lines[index + 1])) {
+          index = appendMarkdownTable(doc, lines, index);
+          continue;
+        }
+        const fence = line.match(/^\s*```(.*)$/);
+        if (fence) {
+          const code = createElement("pre", "doc-code");
+          index += 1;
+          while (index < lines.length && !/^\s*```/.test(lines[index])) {
+            code.appendChild(createSourceEditable("code", lines[index], index, "", "编辑代码内容"));
+            index += 1;
+          }
+          doc.appendChild(code);
+          index += index < lines.length ? 1 : 0;
+          continue;
+        }
+        const heading = line.match(/^(#{1,6})\s+(.*)$/);
+        if (heading) {
+          doc.appendChild(createSourceEditable(`h${heading[1].length}`, heading[2], index, `${heading[1]} `, "编辑标题"));
+          index += 1;
+          continue;
+        }
+        const listItem = line.match(/^(\s*)([-*+]|\d+[.)])\s+(.*)$/);
+        if (listItem) {
+          const row = createElement("div", "doc-list-line");
+          row.append(
+            createElement("span", "doc-list-marker", /^\d/.test(listItem[2]) ? listItem[2] : "•"),
+            createSourceEditable("div", listItem[3], index, `${listItem[1]}${listItem[2]} `, "编辑列表内容")
+          );
+          doc.appendChild(row);
+          index += 1;
+          continue;
+        }
+        const quote = line.match(/^(\s*>\s?)(.*)$/);
+        if (quote) {
+          const editable = createSourceEditable("blockquote", quote[2], index, quote[1], "编辑引用内容");
+          editable.classList.add("doc-quote");
+          doc.appendChild(editable);
+          index += 1;
+          continue;
+        }
+        if (/^\s*(?:---+|___+|\*\*\*+)\s*$/.test(line)) {
+          doc.appendChild(createElement("hr", "doc-divider"));
+          index += 1;
+          continue;
+        }
+        doc.appendChild(createSourceEditable("p", line, index, "", "编辑段落内容"));
+        index += 1;
+      }
+      document.querySelector(".preview-pane").scrollTop = previousScroll;
     }
 
     function previewSectionKeyFromHeading(line) {
@@ -1762,23 +1855,23 @@
     }
 
     function syncPreviewEdit(element) {
-      const value = previewEditableValue(element);
-      const kind = element.dataset.previewKind;
-      let updated = markdownDraft;
-      if (kind === "title") updated = updateMarkdownTitle(updated, value);
-      else if (kind === "meta") updated = updateMarkdownMeta(updated, element.dataset.previewLabel, value);
-      else if (kind === "list") updated = updateMarkdownListItem(updated, element.dataset.previewSection, element.dataset.previewLabel, value);
-      else if (kind === "analytics") {
-        const rowIndex = Number(element.dataset.previewRow);
-        state.analytics[rowIndex][element.dataset.previewColumn] = value;
-        updated = updateMarkdownAnalytics(updated, state.analytics);
+      const lineIndex = Number(element.dataset.mdLine);
+      if (!Number.isInteger(lineIndex)) return;
+      const lines = markdownDraft.replace(/\r\n?/g, "\n").split("\n");
+      const value = element.textContent.replace(/\r?\n/g, "");
+      if (element.dataset.mdTableColumn !== undefined) {
+        const cells = parseTableCells(lines[lineIndex] || "||");
+        const columnIndex = Number(element.dataset.mdTableColumn);
+        while (cells.length <= columnIndex) cells.push("");
+        cells[columnIndex] = value.trim().replace(/\|/g, "/");
+        lines[lineIndex] = `| ${cells.join(" | ")} |`;
+      } else {
+        lines[lineIndex] = `${element.dataset.mdPrefix || ""}${value}`;
       }
-
-      markdownDraft = updated;
+      markdownDraft = lines.join("\n");
       state = parseMarkdown(markdownDraft);
       document.getElementById("markdownEditor").value = markdownDraft;
       document.getElementById("projectTitle").textContent = textOrEmpty(state.title);
-      element.classList.toggle("doc-empty", !value);
       updateMarkdownStats();
       scheduleSave();
       updateProgress();
@@ -1786,30 +1879,37 @@
 
     function bindPreviewEditor() {
       const doc = document.getElementById("documentPreview");
-      doc.addEventListener("focusin", (event) => {
-        const editable = event.target.closest(".doc-editable");
-        if (editable?.classList.contains("doc-empty") && editable.textContent.trim() === "待补充") {
-          editable.textContent = "";
-          editable.classList.remove("doc-empty");
-        }
-      });
       doc.addEventListener("input", (event) => {
-        const editable = event.target.closest(".doc-editable");
+        const editable = event.target.closest(".doc-source-line");
         if (editable) syncPreviewEdit(editable);
       });
       doc.addEventListener("keydown", (event) => {
-        if (event.target.closest(".doc-editable") && event.key === "Enter") {
+        if (event.target.closest(".doc-source-line") && event.key === "Enter") {
           event.preventDefault();
           event.target.blur();
         }
       });
-      doc.addEventListener("focusout", (event) => {
-        const editable = event.target.closest(".doc-editable");
-        if (editable && !editable.textContent.trim()) {
-          editable.textContent = "待补充";
-          editable.classList.add("doc-empty");
-        }
+    }
+
+    let synchronizedScrollSource = null;
+
+    function syncScrollPosition(source, target) {
+      if (synchronizedScrollSource && synchronizedScrollSource !== source) return;
+      synchronizedScrollSource = source;
+      const sourceRange = source.scrollHeight - source.clientHeight;
+      const targetRange = target.scrollHeight - target.clientHeight;
+      const progress = sourceRange > 0 ? source.scrollTop / sourceRange : 0;
+      target.scrollTop = progress * Math.max(targetRange, 0);
+      window.requestAnimationFrame(() => {
+        synchronizedScrollSource = null;
       });
+    }
+
+    function bindSynchronizedScroll() {
+      const editor = document.getElementById("markdownEditor");
+      const preview = document.querySelector(".preview-pane");
+      editor.addEventListener("scroll", () => syncScrollPosition(editor, preview), { passive: true });
+      preview.addEventListener("scroll", () => syncScrollPosition(preview, editor), { passive: true });
     }
 
     function sectionHasContent(section) {
@@ -2357,8 +2457,6 @@
       setMarkdownContent(DEFAULT_MARKDOWN, "已恢复默认脱敏案例");
     });
     document.getElementById("copyButton").addEventListener("click", copyMarkdown);
-    document.getElementById("menuCopyButton").addEventListener("click", copyMarkdown);
-    document.getElementById("previewCopyButton").addEventListener("click", copyMarkdown);
     document.getElementById("previewFullscreenButton").addEventListener("click", togglePreviewFullscreen);
     document.getElementById("downloadButton").addEventListener("click", downloadMarkdown);
     document.getElementById("previewDownloadButton").addEventListener("click", downloadMarkdown);
@@ -2437,6 +2535,7 @@
     applyTheme(localStorage.getItem(THEME_KEY) || "dark");
     bindMarkdownEditor();
     bindPreviewEditor();
+    bindSynchronizedScroll();
     refreshActiveDocument();
     updateModelStatus();
     lucide.createIcons();
