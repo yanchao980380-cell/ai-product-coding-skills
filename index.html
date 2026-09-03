@@ -190,17 +190,16 @@
     .icon-button.mobile-menu { display: none; }
     .title-wrap { min-width: 0; }
     .project-title {
+      display: block;
       width: min(360px, 46vw);
       padding: 3px 0;
-      border: 0;
-      border-bottom: 1px solid transparent;
-      background: transparent;
       color: var(--color-text);
       font-size: 15px;
       font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
       text-overflow: ellipsis;
     }
-    .project-title:hover, .project-title:focus { border-bottom-color: var(--color-border-strong); outline: 0; }
     .save-state { margin-top: 2px; color: var(--color-text-muted); font-size: 10px; }
     .toolbar { display: flex; align-items: center; gap: 7px; }
     .icon-button, .button {
@@ -232,6 +231,42 @@
     .pane-kicker { color: var(--color-accent); font-size: 11px; font-weight: 700; }
     .pane-heading { margin-top: 6px; font-size: 23px; line-height: 1.3; }
     .pane-lead { max-width: 620px; margin-top: 8px; color: var(--color-text-muted); font-size: 12px; line-height: 1.7; }
+    .editor-pane.markdown-mode { overflow: hidden; }
+    .markdown-workspace { display: grid; grid-template-rows: 48px minmax(0, 1fr); width: 100%; height: 100%; min-height: 0; }
+    .markdown-editor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 0 18px;
+      border-bottom: 1px solid var(--color-border);
+      background: var(--color-surface);
+    }
+    .markdown-file { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; }
+    .markdown-file .lucide { color: var(--color-accent); }
+    .markdown-stats { color: var(--color-text-muted); font-size: 10px; }
+    .markdown-editor-wrap { min-width: 0; min-height: 0; padding: 18px; background: var(--color-bg); }
+    .markdown-editor {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      padding: 16px 17px;
+      border: 1px solid var(--color-border);
+      border-radius: 7px;
+      background: var(--color-input);
+      color: var(--color-text);
+      font-family: "Noto Sans SC", sans-serif;
+      font-size: 13px;
+      line-height: 1.8;
+      tab-size: 2;
+      resize: none;
+      white-space: pre-wrap;
+      overflow-wrap: normal;
+      transition: border-color 160ms ease, background 160ms ease;
+    }
+    .markdown-editor:hover { border-color: var(--color-border-strong); }
+    .markdown-editor:focus { border-color: var(--color-accent); outline: 0; background: var(--color-surface); }
 
     .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
     .form-section { padding: 25px 0; border-bottom: 1px solid var(--color-border); scroll-margin-top: 16px; }
@@ -554,6 +589,8 @@
       .work-area.show-preview .preview-pane { display: block; }
       .pane-inner, .form-section, .field-grid { width: 100%; max-width: 100%; min-width: 0; }
       .pane-inner { padding: 22px 18px 54px; overflow-x: hidden; }
+      .markdown-editor-wrap { padding: 12px; }
+      .markdown-editor { padding: 14px; font-size: 12px; }
       .pane-heading { font-size: 20px; }
       .preview-sticky { display: none; }
       .document { min-height: calc(100vh - 130px); margin-top: 14px; }
@@ -639,7 +676,7 @@
         <div class="project-block">
           <button class="icon-button mobile-menu" id="mobileMenu" type="button" aria-label="打开工作流"><i data-lucide="menu"></i></button>
           <div class="title-wrap">
-            <input class="project-title" id="projectTitle" data-bind="title" value="未命名产品需求" aria-label="PRD 标题">
+            <div class="project-title" id="projectTitle">未命名产品需求</div>
             <div class="save-state" id="saveState">已保存到本机</div>
           </div>
         </div>
@@ -647,16 +684,14 @@
           <button class="icon-button" id="themeToggle" type="button" aria-label="切换明暗主题" title="切换主题"><i data-lucide="sun-moon"></i></button>
           <button class="icon-button" id="modelSettingsButton" type="button" aria-label="模型设置" title="模型设置"><i data-lucide="settings-2"></i></button>
           <button class="button primary" id="aiGenerateButton" type="button"><i data-lucide="wand-sparkles"></i><span class="button-label">AI 生成</span></button>
-          <button class="button" id="importButton" type="button"><i data-lucide="clipboard-paste"></i><span class="button-label">粘贴 Markdown</span></button>
           <button class="button" id="copyButton" type="button"><i data-lucide="copy"></i><span class="button-label">复制 PRD</span></button>
           <button class="icon-button" id="moreButton" type="button" aria-label="更多操作" aria-expanded="false"><i data-lucide="ellipsis"></i></button>
         </div>
         <div class="menu" id="moreMenu">
           <button id="menuAiGenerateButton" type="button"><i data-lucide="wand-sparkles"></i>AI 生成 PRD</button>
-          <button id="menuImportButton" type="button"><i data-lucide="clipboard-paste"></i>粘贴 Markdown</button>
           <button id="menuModelSettingsButton" type="button"><i data-lucide="settings-2"></i>模型设置</button>
           <div class="menu-divider"></div>
-          <button id="menuExampleButton" type="button"><i data-lucide="sparkles"></i>载入 AI 换脸示例</button>
+          <button id="menuExampleButton" type="button"><i data-lucide="sparkles"></i>恢复默认脱敏案例</button>
           <button id="menuCopyButton" type="button"><i data-lucide="copy"></i>复制 PRD</button>
           <button id="menuThemeButton" type="button"><i data-lucide="sun-moon"></i>切换明暗主题</button>
           <div class="menu-divider"></div>
@@ -673,105 +708,15 @@
       </div>
 
       <div class="work-area" id="workArea">
-        <section class="editor-pane" aria-label="PRD 编辑器">
-          <div class="pane-inner">
-            <div class="pane-kicker">STEP 01 · DEFINE</div>
-            <h1 class="pane-heading">把产品想法压缩成可执行的需求</h1>
-            <p class="pane-lead">只填写影响开发与验收的内容。详细视觉和交互以原型为准，避免在 PRD 中重复描述。</p>
-
-            <div class="meta-row">
-              <label class="field">
-                <span class="field-label">负责人</span>
-                <input class="text-input" data-bind="owner" placeholder="例如：张三 / AI 产品组">
-              </label>
-              <label class="field">
-                <span class="field-label">版本</span>
-                <input class="text-input" data-bind="version" placeholder="例如：MVP / V1.0">
-              </label>
+        <section class="editor-pane markdown-mode" aria-label="PRD Markdown 编辑器">
+          <div class="markdown-workspace">
+            <div class="markdown-editor-header">
+              <div class="markdown-file"><i data-lucide="file-code-2"></i><span>PRD.md</span></div>
+              <div class="markdown-stats" id="markdownStats">0 行 · 0 字</div>
             </div>
-
-            <section class="form-section" data-section="background">
-              <div class="section-head">
-                <span class="section-number">01</span>
-                <div><h2 class="section-title">背景和场景</h2><p class="section-note">谁在什么情况下遇到了什么问题</p></div>
-                <span class="complete-dot" aria-label="完成状态"></span>
-              </div>
-              <div class="field-grid">
-                <label class="field full"><span class="field-label">用户与场景 <span class="required">*</span></span><textarea class="text-area" data-bind="background.userScenario" placeholder="例如：内容创作者制作短视频封面时，需要快速替换人物面孔"></textarea></label>
-                <label class="field"><span class="field-label">当前问题</span><textarea class="text-area" data-bind="background.problem" placeholder="现有方式为什么不够好？"></textarea></label>
-                <label class="field"><span class="field-label">触发时机</span><textarea class="text-area" data-bind="background.trigger" placeholder="用户何时会产生这个需求？"></textarea></label>
-              </div>
-            </section>
-
-            <section class="form-section" data-section="goal">
-              <div class="section-head">
-                <span class="section-number">02</span>
-                <div><h2 class="section-title">目标</h2><p class="section-note">明确结果，也明确这次不解决什么</p></div>
-                <span class="complete-dot" aria-label="完成状态"></span>
-              </div>
-              <div class="field-grid">
-                <label class="field full"><span class="field-label">用户目标 <span class="required">*</span></span><textarea class="text-area" data-bind="goal.userGoal" placeholder="用户完成后获得什么明确价值？"></textarea></label>
-                <label class="field"><span class="field-label">业务目标</span><textarea class="text-area" data-bind="goal.businessGoal" placeholder="可选：使用、留存或付费目标"></textarea></label>
-                <label class="field"><span class="field-label">非目标</span><textarea class="text-area" data-bind="goal.nonGoal" placeholder="这次明确不做什么？"></textarea></label>
-              </div>
-            </section>
-
-            <section class="form-section" data-section="scope">
-              <div class="section-head">
-                <span class="section-number">03</span>
-                <div><h2 class="section-title">需求范围</h2><p class="section-note">定义 MVP 的输入、能力、输出与边界</p></div>
-                <span class="complete-dot" aria-label="完成状态"></span>
-              </div>
-              <div class="field-grid">
-                <label class="field"><span class="field-label">输入 <span class="required">*</span></span><textarea class="text-area" data-bind="scope.inputs" placeholder="用户提供什么？格式和数量是什么？"></textarea></label>
-                <label class="field"><span class="field-label">核心能力 <span class="required">*</span></span><textarea class="text-area" data-bind="scope.capability" placeholder="系统必须完成的核心处理"></textarea></label>
-                <label class="field"><span class="field-label">输出</span><textarea class="text-area" data-bind="scope.outputs" placeholder="结果形态、格式和可执行动作"></textarea></label>
-                <label class="field"><span class="field-label">约束</span><textarea class="text-area" data-bind="scope.constraints" placeholder="权限、额度、时延、成本、安全"></textarea></label>
-                <label class="field full"><span class="field-label">MVP 不包含</span><textarea class="text-area" data-bind="scope.outScope" placeholder="明确排除的高级能力或后续版本事项"></textarea></label>
-              </div>
-            </section>
-
-            <section class="form-section" data-section="flow">
-              <div class="section-head">
-                <span class="section-number">04</span>
-                <div><h2 class="section-title">流程</h2><p class="section-note">主路径简洁，异常必须可恢复</p></div>
-                <span class="complete-dot" aria-label="完成状态"></span>
-              </div>
-              <div class="field-grid">
-                <label class="field full"><span class="field-label">主流程 <span class="required">*</span></span><textarea class="text-area" data-bind="flow.main" placeholder="输入 → 校验 → 处理中 → 成功结果 → 使用/保存"></textarea></label>
-                <label class="field"><span class="field-label">异常与空状态</span><textarea class="text-area" data-bind="flow.exceptions" placeholder="无输入、格式错误、生成失败、超时"></textarea></label>
-                <label class="field"><span class="field-label">失败后的动作</span><textarea class="text-area" data-bind="flow.recovery" placeholder="重试、修改输入、退款或联系客服"></textarea></label>
-              </div>
-            </section>
-
-            <section class="form-section" data-section="analytics">
-              <div class="section-head">
-                <span class="section-number">05</span>
-                <div><h2 class="section-title">埋点</h2><p class="section-note">覆盖入口、提交、结果、使用和失败</p></div>
-                <span class="complete-dot" aria-label="完成状态"></span>
-              </div>
-              <div class="event-table-wrap">
-                <table class="event-table">
-                  <thead><tr><th style="width: 28%">事件</th><th style="width: 35%">触发时机</th><th>必要属性</th></tr></thead>
-                  <tbody id="analyticsBody"></tbody>
-                </table>
-              </div>
-            </section>
-
-            <section class="form-section" data-section="standards">
-              <div class="section-head">
-                <span class="section-number">06</span>
-                <div><h2 class="section-title">标准和指标</h2><p class="section-note">用可观察行为和数字完成验收</p></div>
-                <span class="complete-dot" aria-label="完成状态"></span>
-              </div>
-              <div class="field-grid">
-                <label class="field full"><span class="field-label">功能验收 <span class="required">*</span></span><textarea class="text-area" data-bind="standards.functional" placeholder="主流程、输入校验、失败恢复、结果使用分别如何算通过？"></textarea></label>
-                <label class="field"><span class="field-label">AI 质量</span><textarea class="text-area" data-bind="standards.quality" placeholder="成功率、人工抽检通过率"></textarea></label>
-                <label class="field"><span class="field-label">性能</span><textarea class="text-area" data-bind="standards.performance" placeholder="P95 时延、超时率"></textarea></label>
-                <label class="field"><span class="field-label">业务指标</span><textarea class="text-area" data-bind="standards.business" placeholder="使用率、结果使用率、复用率、付费转化"></textarea></label>
-                <label class="field"><span class="field-label">风险指标</span><textarea class="text-area" data-bind="standards.risk" placeholder="投诉率、违规率、隐私要求"></textarea></label>
-              </div>
-            </section>
+            <div class="markdown-editor-wrap">
+              <textarea class="markdown-editor" id="markdownEditor" aria-label="PRD Markdown 内容" spellcheck="false"></textarea>
+            </div>
           </div>
         </section>
 
@@ -787,23 +732,6 @@
         </section>
       </div>
     </main>
-  </div>
-
-  <div class="modal-backdrop" id="markdownModal" aria-hidden="true">
-    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="markdownModalTitle">
-      <header class="modal-header">
-        <h2 class="modal-title" id="markdownModalTitle">导入 Markdown</h2>
-        <button class="icon-button" id="closeMarkdownModal" type="button" aria-label="关闭导入窗口"><i data-lucide="x"></i></button>
-      </header>
-      <div class="modal-body">
-        <textarea class="modal-textarea" id="markdownInput" aria-label="Markdown 内容" placeholder="# 产品需求名称&#10;&#10;## 1. 背景和场景&#10;- 用户与场景：...&#10;- 当前问题：...&#10;&#10;## 2. 目标&#10;- 用户目标：..."></textarea>
-        <p class="modal-note">导入后将替换当前 PRD，内容仍只保存在本机。</p>
-      </div>
-      <footer class="modal-footer">
-        <button class="button" id="cancelMarkdownImport" type="button">取消</button>
-        <button class="button primary" id="confirmMarkdownImport" type="button"><i data-lucide="wand-sparkles"></i>解析并填入</button>
-      </footer>
-    </section>
   </div>
 
   <div class="modal-backdrop" id="generateModal" aria-hidden="true">
@@ -823,7 +751,7 @@
         </div>
         <label class="field" style="margin-top: 16px">
           <span class="field-label">产品想法或原始需求 <span class="required">*</span></span>
-          <textarea class="modal-textarea generate-textarea" id="generationBrief" placeholder="例如：在 ChatArt App 中增加 AI 换脸功能，用户上传源人脸和目标图片后生成换脸结果。免费用户每天可体验 2 次。"></textarea>
+          <textarea class="modal-textarea generate-textarea" id="generationBrief" placeholder="例如：在产品 A 中增加功能 A，用户上传素材后生成处理结果；免费用户每天可体验 2 次。"></textarea>
         </label>
         <p class="modal-note">点击生成会将上述需求发送给当前配置的模型服务商。</p>
         <div class="generation-error" id="generationError" role="alert"></div>
@@ -880,7 +808,7 @@
   <div class="toast" id="toast" role="status"><i data-lucide="check-circle-2"></i><span id="toastText">已完成</span></div>
 
   <script>
-    const STORAGE_KEY = "ai-pm-workbench-prd-v1";
+    const MARKDOWN_STORAGE_KEY = "ai-pm-workbench-markdown-v2";
     const THEME_KEY = "ai-pm-workbench-theme";
     const MODEL_CONFIG_KEY = "ai-pm-workbench-model-v1";
     const MODEL_SECRET_KEY = "ai-pm-workbench-model-key";
@@ -908,49 +836,97 @@
       standards: { functional: "", quality: "", performance: "", business: "", risk: "" }
     });
 
-    const faceSwapExample = {
-      title: "ChatArt AI 换脸功能 MVP",
-      owner: "AI 产品组",
-      version: "MVP · V1.0",
-      background: {
-        userScenario: "内容创作者和普通用户在制作社媒图片时，希望把目标照片中的人脸快速替换为自己的脸。",
-        problem: "现有专业修图工具操作复杂，普通用户难以保持五官自然、肤色协调和原图风格一致。",
-        trigger: "用户在 ChatArt App 图片工具中选择“AI 换脸”，或从模板页进入换脸场景。"
-      },
-      goal: {
-        userGoal: "上传源人脸和目标图片后，用户可在 60 秒内获得自然、可下载的换脸结果。",
-        businessGoal: "验证换脸功能的使用需求与付费潜力，提升图片工具使用率和结果下载率。",
-        nonGoal: "MVP 不支持视频换脸、多人批量换脸、实时摄像头换脸和精细局部编辑。"
-      },
-      scope: {
-        inputs: "1 张正面、清晰的源人脸照片；1 张包含单个清晰人脸的目标图片。支持 JPG、PNG，单张不超过 10 MB。",
-        capability: "检测两张图片中的主要人脸，将源人脸特征迁移到目标人物，并保持目标姿态、表情、发型、光线和背景。",
-        outputs: "返回 1 张换脸结果图；支持对比原图、重新生成和下载 JPG。",
-        constraints: "登录用户可使用；免费用户每日 2 次；单次仅支持一张脸；生成任务 90 秒超时；上传前确认拥有图片使用权。",
-        outScope: "视频或 GIF、多人脸选择、儿童或公众人物模板、换脸强度调节、历史作品云同步。"
-      },
-      flow: {
-        main: "进入 AI 换脸 → 上传源人脸 → 上传目标图片 → 图片校验 → 确认授权并提交 → 生成中 → 查看对比结果 → 下载或重新生成。",
-        exceptions: "未检测到人脸、检测到多张人脸、图片模糊或过小、格式/大小不支持、内容安全拦截、生成超时或服务异常。",
-        recovery: "针对输入问题引导重新上传；生成失败或超时不扣额度并允许重试；连续失败时提供反馈入口。"
-      },
-      analytics: [
-        { event: "face_swap_view", trigger: "进入 AI 换脸页", properties: "entry, plan" },
-        { event: "face_swap_submit", trigger: "授权后提交生成", properties: "source_type, target_type, plan" },
-        { event: "face_swap_result", trigger: "结果返回", properties: "status, latency_ms, error_code" },
-        { event: "face_swap_download", trigger: "下载结果", properties: "result_id, plan" },
-        { event: "face_swap_retry", trigger: "点击重新生成", properties: "last_status, retry_count" }
-      ],
-      standards: {
-        functional: "支持完整上传与生成流程；非法输入有明确提示；生成失败不扣额度且可重试；成功结果可对比和下载。",
-        quality: "有效输入生成成功率 ≥ 95%；人工抽检自然度通过率 ≥ 85%；严重五官错位率 ≤ 3%。",
-        performance: "P50 完成时延 ≤ 30 秒，P95 ≤ 60 秒；任务超时率 ≤ 2%。",
-        business: "进入页到提交转化率 ≥ 35%；成功结果下载率 ≥ 40%；7 日复用率 ≥ 15%。",
-        risk: "违规内容拦截率按安全策略执行；有效投诉率 ≤ 0.1%；原始图片和结果按现有隐私政策留存与删除。"
-      }
-    };
+    const DEFAULT_MARKDOWN = `# 产品 A · 功能 A MVP
 
-    let state = loadState();
+负责人：AI 产品组
+版本：MVP · V1.0
+
+## 1. 背景和场景
+
+- 用户与场景：内容创作者在制作社媒图片时，希望将两张人物素材快速合成为一张自然的新图片。
+- 当前问题：现有专业修图工具操作复杂，普通用户难以保持主体特征、光线和原图风格一致。
+- 触发时机：用户在产品 A 的图片工具中进入功能 A，准备制作新的内容素材。
+
+## 2. 目标
+
+- 用户目标：上传源素材和目标图片后，用户可在 60 秒内获得自然、可下载的处理结果。
+- 业务目标：验证功能 A 的使用需求与付费潜力，提升图片工具使用率和结果下载率。
+- 非目标：MVP 不支持视频处理、多人批量处理、实时摄像头模式和精细局部编辑。
+
+## 3. 需求范围
+
+- 输入：1 张清晰的源素材；1 张包含单个清晰人物的目标图片。支持 JPG、PNG，单张不超过 10 MB。
+- 核心能力：提取源素材中的主体特征并融合到目标图片，同时保持目标姿态、光线和背景风格。
+- 输出：返回 1 张处理结果图；支持对比原图、重新生成和下载 JPG。
+- 约束：登录用户可使用；免费用户每日 2 次；生成任务 90 秒超时；上传前确认拥有图片使用权。
+- MVP 不包含：视频或 GIF、多人选择、特殊人物模板、处理强度调节、历史作品云同步。
+
+## 4. 流程
+
+- 主流程：进入功能 A → 上传源素材 → 上传目标图片 → 图片校验 → 确认授权并提交 → 生成中 → 查看结果 → 下载或重新生成。
+- 异常与空状态：未检测到有效主体、检测到多个主体、图片模糊或过小、格式不支持、内容安全拦截、生成超时或服务异常。
+- 失败后的动作：输入问题引导重新上传；生成失败或超时不扣额度并允许重试；连续失败时提供反馈入口。
+
+## 5. 埋点
+
+| 事件 | 触发时机 | 必要属性 |
+| --- | --- | --- |
+| feature_a_view | 进入功能 A | entry, plan |
+| feature_a_submit | 授权后提交生成 | source_type, target_type, plan |
+| feature_a_result | 结果返回 | status, latency_ms, error_code |
+| feature_a_download | 下载结果 | result_id, plan |
+| feature_a_retry | 点击重新生成 | last_status, retry_count |
+
+## 6. 标准和指标
+
+- 功能验收：支持完整上传与生成流程；非法输入有明确提示；生成失败不扣额度且可重试；成功结果可对比和下载。
+- AI 质量：有效输入生成成功率 ≥ 95%；人工抽检自然度通过率 ≥ 85%；严重异常率 ≤ 3%。
+- 性能：P50 完成时延 ≤ 30 秒，P95 ≤ 60 秒；任务超时率 ≤ 2%。
+- 业务指标：进入页到提交转化率 ≥ 35%；成功结果下载率 ≥ 40%；7 日复用率 ≥ 15%。
+- 风险指标：违规内容按安全策略拦截；有效投诉率 ≤ 0.1%；原始图片和结果按现有隐私政策留存与删除。`;
+
+    function blankMarkdown() {
+      return `# 未命名产品需求
+
+负责人：待补充
+版本：MVP
+
+## 1. 背景和场景
+- 用户与场景：
+- 当前问题：
+- 触发时机：
+
+## 2. 目标
+- 用户目标：
+- 业务目标：
+- 非目标：
+
+## 3. 需求范围
+- 输入：
+- 核心能力：
+- 输出：
+- 约束：
+- MVP 不包含：
+
+## 4. 流程
+- 主流程：
+- 异常与空状态：
+- 失败后的动作：
+
+## 5. 埋点
+| 事件 | 触发时机 | 必要属性 |
+| --- | --- | --- |
+
+## 6. 标准和指标
+- 功能验收：
+- AI 质量：
+- 性能：
+- 业务指标：
+- 风险指标：`;
+    }
+
+    let markdownDraft = loadMarkdown();
+    let state = parseMarkdown(markdownDraft);
     let modelConfig = loadModelConfig();
     let generationMode = "mvp";
     let generationController = null;
@@ -958,13 +934,12 @@
     let saveTimer;
     let toastTimer;
 
-    function loadState() {
+    function loadMarkdown() {
       try {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (!saved) return blankState();
-        return mergeState(blankState(), JSON.parse(saved));
+        const saved = localStorage.getItem(MARKDOWN_STORAGE_KEY);
+        return saved === null ? DEFAULT_MARKDOWN : saved;
       } catch (error) {
-        return blankState();
+        return DEFAULT_MARKDOWN;
       }
     }
 
@@ -985,64 +960,30 @@
       }
     }
 
-    function mergeState(base, saved) {
-      return {
-        ...base,
-        ...saved,
-        background: { ...base.background, ...(saved.background || {}) },
-        goal: { ...base.goal, ...(saved.goal || {}) },
-        scope: { ...base.scope, ...(saved.scope || {}) },
-        flow: { ...base.flow, ...(saved.flow || {}) },
-        standards: { ...base.standards, ...(saved.standards || {}) },
-        analytics: Array.isArray(saved.analytics) && saved.analytics.length ? saved.analytics : base.analytics
-      };
-    }
-
-    function getPath(object, path) {
-      return path.split(".").reduce((value, key) => value && value[key], object) ?? "";
-    }
-
-    function setPath(object, path, value) {
-      const keys = path.split(".");
-      const last = keys.pop();
-      const target = keys.reduce((current, key) => current[key], object);
-      target[last] = value;
-    }
-
-    function bindForm() {
-      document.querySelectorAll("[data-bind]").forEach((field) => {
-        field.value = getPath(state, field.dataset.bind);
-        field.addEventListener("input", () => {
-          setPath(state, field.dataset.bind, field.value);
-          scheduleSave();
-          renderPreview();
-          updateProgress();
-        });
+    function bindMarkdownEditor() {
+      const editor = document.getElementById("markdownEditor");
+      editor.value = markdownDraft;
+      editor.addEventListener("input", () => {
+        markdownDraft = editor.value;
+        state = parseMarkdown(markdownDraft);
+        updateMarkdownStats();
+        scheduleSave();
+        renderPreview();
+        updateProgress();
       });
-      renderAnalyticsEditor();
+      editor.addEventListener("keydown", (event) => {
+        if (event.key !== "Tab") return;
+        event.preventDefault();
+        const start = editor.selectionStart;
+        editor.setRangeText("  ", start, editor.selectionEnd, "end");
+        editor.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      updateMarkdownStats();
     }
 
-    function renderAnalyticsEditor() {
-      const body = document.getElementById("analyticsBody");
-      body.replaceChildren();
-      state.analytics.forEach((row, index) => {
-        const tr = document.createElement("tr");
-        ["event", "trigger", "properties"].forEach((key) => {
-          const td = document.createElement("td");
-          const input = document.createElement("input");
-          input.value = row[key] || "";
-          input.setAttribute("aria-label", `${index + 1} ${key}`);
-          input.addEventListener("input", () => {
-            state.analytics[index][key] = input.value;
-            scheduleSave();
-            renderPreview();
-            updateProgress();
-          });
-          td.appendChild(input);
-          tr.appendChild(td);
-        });
-        body.appendChild(tr);
-      });
+    function updateMarkdownStats() {
+      const lines = markdownDraft ? markdownDraft.split("\n").length : 0;
+      document.getElementById("markdownStats").textContent = `${lines} 行 · ${markdownDraft.length} 字`;
     }
 
     function scheduleSave() {
@@ -1050,7 +991,7 @@
       saveState.textContent = "正在保存...";
       window.clearTimeout(saveTimer);
       saveTimer = window.setTimeout(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        localStorage.setItem(MARKDOWN_STORAGE_KEY, markdownDraft);
         saveState.textContent = `已保存 · ${new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`;
       }, 350);
     }
@@ -1087,6 +1028,7 @@
     function renderPreview() {
       const doc = document.getElementById("documentPreview");
       doc.replaceChildren();
+      document.getElementById("projectTitle").textContent = textOrEmpty(state.title);
       doc.appendChild(createElement("div", "doc-label", "PRODUCT REQUIREMENT DOCUMENT"));
       doc.appendChild(createElement("h1", "doc-title", textOrEmpty(state.title)));
       const meta = createElement("div", "doc-meta");
@@ -1136,68 +1078,13 @@
 
     function updateProgress() {
       const sections = ["background", "goal", "scope", "flow", "analytics", "standards"];
-      let complete = 0;
-      sections.forEach((section) => {
-        const isComplete = sectionHasContent(section);
-        document.querySelector(`[data-section="${section}"]`).classList.toggle("complete", isComplete);
-        if (isComplete) complete += 1;
-      });
+      const complete = sections.filter(sectionHasContent).length;
       document.getElementById("progressText").textContent = `${complete} / 6`;
       document.getElementById("progressFill").style.width = `${(complete / 6) * 100}%`;
     }
 
-    function markdownValue(value) {
-      return value && value.trim() ? value.trim() : "待补充";
-    }
-
     function buildMarkdown() {
-      const analyticsRows = state.analytics.map((row) => `| ${markdownValue(row.event)} | ${markdownValue(row.trigger)} | ${markdownValue(row.properties)} |`).join("\n");
-      return `# ${markdownValue(state.title)}
-
-负责人：${markdownValue(state.owner)}  
-版本：${markdownValue(state.version)}  
-更新：${new Date().toLocaleDateString("zh-CN")}
-
-## 1. 背景和场景
-
-- 用户与场景：${markdownValue(state.background.userScenario)}
-- 当前问题：${markdownValue(state.background.problem)}
-- 触发时机：${markdownValue(state.background.trigger)}
-
-## 2. 目标
-
-- 用户目标：${markdownValue(state.goal.userGoal)}
-- 业务目标：${markdownValue(state.goal.businessGoal)}
-- 非目标：${markdownValue(state.goal.nonGoal)}
-
-## 3. 需求范围
-
-- 输入：${markdownValue(state.scope.inputs)}
-- 核心能力：${markdownValue(state.scope.capability)}
-- 输出：${markdownValue(state.scope.outputs)}
-- 约束：${markdownValue(state.scope.constraints)}
-- MVP 不包含：${markdownValue(state.scope.outScope)}
-
-## 4. 流程
-
-- 主流程：${markdownValue(state.flow.main)}
-- 异常与空状态：${markdownValue(state.flow.exceptions)}
-- 失败后的动作：${markdownValue(state.flow.recovery)}
-
-## 5. 埋点
-
-| 事件 | 触发时机 | 必要属性 |
-| --- | --- | --- |
-${analyticsRows}
-
-## 6. 标准和指标
-
-- 功能验收：${markdownValue(state.standards.functional)}
-- AI 质量：${markdownValue(state.standards.quality)}
-- 性能：${markdownValue(state.standards.performance)}
-- 业务指标：${markdownValue(state.standards.business)}
-- 风险指标：${markdownValue(state.standards.risk)}
-`;
+      return markdownDraft.trim() ? `${markdownDraft.trim()}\n` : "";
     }
 
     function normalizeLabel(value) {
@@ -1338,38 +1225,6 @@ ${analyticsRows}
       if (!result.standards.functional && standardsText) result.standards.functional = plainSectionText(standardsText);
 
       return result;
-    }
-
-    let markdownModalTrigger = null;
-
-    function openMarkdownModal() {
-      markdownModalTrigger = document.activeElement;
-      const modal = document.getElementById("markdownModal");
-      modal.classList.add("open");
-      modal.setAttribute("aria-hidden", "false");
-      document.getElementById("moreMenu").classList.remove("open");
-      document.getElementById("moreButton").setAttribute("aria-expanded", "false");
-      window.setTimeout(() => document.getElementById("markdownInput").focus(), 0);
-    }
-
-    function closeMarkdownModal() {
-      const modal = document.getElementById("markdownModal");
-      modal.classList.remove("open");
-      modal.setAttribute("aria-hidden", "true");
-      if (markdownModalTrigger) markdownModalTrigger.focus();
-    }
-
-    function importMarkdown() {
-      const markdown = document.getElementById("markdownInput").value.trim();
-      if (!markdown) {
-        showToast("请先粘贴 Markdown 内容");
-        document.getElementById("markdownInput").focus();
-        return;
-      }
-      hydrate(parseMarkdown(markdown), "Markdown 已解析并填入 PRD");
-      document.getElementById("markdownInput").value = "";
-      closeMarkdownModal();
-      toggleMobilePreview(false);
     }
 
     let generateModalTrigger = null;
@@ -1597,7 +1452,7 @@ ${analyticsRows}
         ].filter(Boolean).length;
         if (recognizedSections < 3) throw new Error("模型返回的 PRD 结构无法识别，请重试或使用 Markdown 导入。");
         generationController = null;
-        hydrate(generated, "AI PRD 已生成，可继续编辑");
+        setMarkdownContent(markdown, "AI PRD 已生成，可继续编辑");
         document.getElementById("generationBrief").value = "";
         setModalOpen("generateModal", false);
         toggleMobilePreview(false);
@@ -1636,16 +1491,21 @@ ${analyticsRows}
       showToast("Markdown 文件已下载");
     }
 
-    function hydrate(nextState, message) {
-      state = mergeState(blankState(), nextState);
-      document.querySelectorAll("[data-bind]").forEach((field) => { field.value = getPath(state, field.dataset.bind); });
-      renderAnalyticsEditor();
+    function setMarkdownContent(markdown, message) {
+      markdownDraft = typeof markdown === "string" ? markdown.trim() : "";
+      state = parseMarkdown(markdownDraft);
+      document.getElementById("markdownEditor").value = markdownDraft;
+      updateMarkdownStats();
       renderPreview();
       updateProgress();
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      localStorage.setItem(MARKDOWN_STORAGE_KEY, markdownDraft);
+      closeMoreMenu();
+      showToast(message);
+    }
+
+    function closeMoreMenu() {
       document.getElementById("moreMenu").classList.remove("open");
       document.getElementById("moreButton").setAttribute("aria-expanded", "false");
-      showToast(message);
     }
 
     function showToast(message) {
@@ -1676,20 +1536,12 @@ ${analyticsRows}
     document.getElementById("menuAiGenerateButton").addEventListener("click", openGenerateModal);
     document.getElementById("modelSettingsButton").addEventListener("click", () => openModelSettings(false));
     document.getElementById("menuModelSettingsButton").addEventListener("click", () => openModelSettings(false));
-    document.getElementById("importButton").addEventListener("click", openMarkdownModal);
-    document.getElementById("menuImportButton").addEventListener("click", openMarkdownModal);
-    document.getElementById("menuExampleButton").addEventListener("click", () => hydrate(faceSwapExample, "已载入 AI 换脸 PRD 示例"));
+    document.getElementById("menuExampleButton").addEventListener("click", () => setMarkdownContent(DEFAULT_MARKDOWN, "已恢复默认脱敏案例"));
     document.getElementById("copyButton").addEventListener("click", copyMarkdown);
     document.getElementById("menuCopyButton").addEventListener("click", copyMarkdown);
     document.getElementById("previewCopyButton").addEventListener("click", copyMarkdown);
     document.getElementById("downloadButton").addEventListener("click", downloadMarkdown);
     document.getElementById("previewDownloadButton").addEventListener("click", downloadMarkdown);
-    document.getElementById("closeMarkdownModal").addEventListener("click", closeMarkdownModal);
-    document.getElementById("cancelMarkdownImport").addEventListener("click", closeMarkdownModal);
-    document.getElementById("confirmMarkdownImport").addEventListener("click", importMarkdown);
-    document.getElementById("markdownModal").addEventListener("click", (event) => {
-      if (event.target === event.currentTarget) closeMarkdownModal();
-    });
     document.getElementById("closeGenerateModal").addEventListener("click", closeGenerateModal);
     document.getElementById("cancelGeneration").addEventListener("click", closeGenerateModal);
     document.getElementById("confirmGeneration").addEventListener("click", generatePrdWithModel);
@@ -1729,11 +1581,10 @@ ${analyticsRows}
       if (event.key !== "Escape") return;
       if (document.getElementById("modelSettingsModal").classList.contains("open")) closeModelSettings();
       else if (document.getElementById("generateModal").classList.contains("open")) closeGenerateModal();
-      else if (document.getElementById("markdownModal").classList.contains("open")) closeMarkdownModal();
     });
-    document.getElementById("blankButton").addEventListener("click", () => hydrate(blankState(), "已新建空白 PRD"));
+    document.getElementById("blankButton").addEventListener("click", () => setMarkdownContent(blankMarkdown(), "已新建空白 PRD"));
     document.getElementById("clearButton").addEventListener("click", () => {
-      if (window.confirm("确认清空当前 PRD？该操作无法撤销。")) hydrate(blankState(), "当前 PRD 已清空");
+      if (window.confirm("确认清空当前 PRD？该操作无法撤销。")) setMarkdownContent("", "当前 PRD 已清空");
     });
     document.getElementById("moreButton").addEventListener("click", (event) => {
       event.stopPropagation();
@@ -1744,8 +1595,7 @@ ${analyticsRows}
     document.addEventListener("click", (event) => {
       const menu = document.getElementById("moreMenu");
       if (!menu.contains(event.target)) {
-        menu.classList.remove("open");
-        document.getElementById("moreButton").setAttribute("aria-expanded", "false");
+        closeMoreMenu();
       }
     });
     document.getElementById("mobileMenu").addEventListener("click", () => {
@@ -1760,7 +1610,7 @@ ${analyticsRows}
     document.getElementById("previewTab").addEventListener("click", () => toggleMobilePreview(true));
 
     applyTheme(localStorage.getItem(THEME_KEY) || "dark");
-    bindForm();
+    bindMarkdownEditor();
     renderPreview();
     updateProgress();
     updateModelStatus();
