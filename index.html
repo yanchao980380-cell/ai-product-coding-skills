@@ -118,11 +118,7 @@
       font-size: 10px;
       font-weight: 600;
     }
-    .workflow {
-      flex: 1;
-      padding: 18px 10px;
-      overflow-y: auto;
-    }
+    .workflow { flex: 0 0 auto; padding: 18px 10px 12px; }
     .nav-label {
       padding: 0 9px 8px;
       color: var(--color-text-muted);
@@ -167,6 +163,75 @@
       color: var(--color-text-muted);
       font-size: 9px;
     }
+    .prd-library {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      flex-direction: column;
+      border-top: 1px solid var(--color-border);
+    }
+    .library-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 44px;
+      padding: 0 10px 0 19px;
+    }
+    .library-title { color: var(--color-text-muted); font-size: 11px; font-weight: 600; }
+    .library-actions, .tree-actions { display: flex; align-items: center; gap: 2px; }
+    .tree-icon-button {
+      display: inline-grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--color-text-muted);
+      cursor: pointer;
+    }
+    .tree-icon-button:hover { background: var(--color-surface-strong); color: var(--color-text); }
+    .tree-icon-button.danger:hover { color: var(--color-danger); }
+    .tree-icon-button .lucide { width: 14px; height: 14px; }
+    .prd-tree { flex: 1; min-height: 0; padding: 0 8px 12px; overflow-y: auto; }
+    .tree-folder { margin-bottom: 2px; }
+    .tree-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      min-width: 0;
+      min-height: 34px;
+      border: 1px solid transparent;
+      border-radius: 6px;
+      color: var(--color-text-muted);
+    }
+    .tree-row:hover { background: var(--color-surface); color: var(--color-text); }
+    .tree-row.active { border-color: var(--color-border); background: var(--color-surface-strong); color: var(--color-text); }
+    .tree-main {
+      display: flex;
+      flex: 1;
+      min-width: 0;
+      align-items: center;
+      gap: 7px;
+      height: 32px;
+      padding: 0 5px 0 7px;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: pointer;
+    }
+    .tree-main .lucide { width: 14px; height: 14px; flex: 0 0 auto; }
+    .tree-name { min-width: 0; overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+    .tree-actions { display: none; padding-right: 3px; }
+    .tree-row:hover .tree-actions, .tree-row:focus-within .tree-actions { display: flex; }
+    .tree-actions .tree-icon-button { width: 25px; height: 25px; }
+    .tree-files { padding-left: 17px; }
+    .tree-folder.collapsed .tree-files { display: none; }
+    .tree-empty { padding: 8px 10px 10px 29px; color: var(--color-text-muted); font-size: 10px; }
+    .tree-root-label { padding: 9px 8px 4px; color: var(--color-text-muted); font-size: 9px; font-weight: 700; }
     .sidebar-footer {
       padding: 12px 14px 16px;
       border-top: 1px solid var(--color-border);
@@ -539,6 +604,12 @@
       border-top: 1px solid var(--color-border);
     }
     .modal.compact { width: min(620px, 100%); }
+    .modal.library-modal { width: min(420px, 100%); }
+    .dialog-description { color: var(--color-text-muted); font-size: 11px; line-height: 1.65; }
+    .dialog-description:empty { display: none; }
+    .dialog-field { display: grid; gap: 7px; margin-top: 14px; }
+    .dialog-field.hidden { display: none; }
+    .button.destructive { border-color: var(--color-danger); background: var(--color-danger); color: #fff; }
     .modal-field-stack { display: grid; gap: 15px; }
     .select-input { appearance: auto; }
     .secret-field { position: relative; }
@@ -639,6 +710,7 @@
         background: var(--color-overlay);
       }
       .sidebar-backdrop.open { display: block; }
+      .tree-actions { display: flex; }
       .workspace { width: 100vw; max-width: 100vw; height: 100vh; grid-template-rows: 58px 42px minmax(0, 1fr); overflow: hidden; }
       .topbar { padding: 0 10px; }
       .icon-button.mobile-menu { display: inline-flex; }
@@ -687,6 +759,7 @@
       .toast { right: 10px; bottom: 10px; }
       .modal-backdrop { padding: 0; }
       .modal { width: 100%; height: 100%; max-height: none; border: 0; border-radius: 0; }
+      .modal.library-modal { width: calc(100% - 28px); height: auto; border: 1px solid var(--color-border-strong); border-radius: 8px; }
       .modal-body { padding: 14px; }
       .modal-footer { padding-inline: 14px; }
     }
@@ -739,6 +812,16 @@
           </li>
         </ol>
       </nav>
+      <section class="prd-library" aria-label="PRD 文档库">
+        <header class="library-header">
+          <span class="library-title">PRD 文档</span>
+          <div class="library-actions">
+            <button class="tree-icon-button" id="createFolderButton" type="button" aria-label="新建目录" title="新建目录"><i data-lucide="folder-plus"></i></button>
+            <button class="tree-icon-button" id="createFileButton" type="button" aria-label="新建 PRD 文件" title="新建 PRD 文件"><i data-lucide="file-plus-2"></i></button>
+          </div>
+        </header>
+        <div class="prd-tree" id="prdTree"></div>
+      </section>
       <div class="sidebar-footer">
         <div class="progress-meta"><span>PRD 完成度</span><strong id="progressText">0 / 6</strong></div>
         <div class="progress-track" aria-hidden="true"><div class="progress-fill" id="progressFill"></div></div>
@@ -784,7 +867,7 @@
         <section class="editor-pane markdown-mode" aria-label="PRD Markdown 编辑器">
           <div class="markdown-workspace chat-collapsed" id="markdownWorkspace">
             <div class="markdown-editor-header">
-              <div class="markdown-file"><i data-lucide="file-code-2"></i><span>PRD.md</span></div>
+              <div class="markdown-file"><i data-lucide="file-code-2"></i><span id="activeFileName">PRD.md</span></div>
               <div class="markdown-stats" id="markdownStats">0 行 · 0 字</div>
             </div>
             <div class="markdown-editor-wrap">
@@ -874,10 +957,31 @@
     </section>
   </div>
 
+  <div class="modal-backdrop" id="libraryDialog" aria-hidden="true">
+    <form class="modal library-modal" id="libraryDialogForm" role="dialog" aria-modal="true" aria-labelledby="libraryDialogTitle">
+      <header class="modal-header">
+        <h2 class="modal-title" id="libraryDialogTitle">新建 PRD</h2>
+        <button class="icon-button" id="closeLibraryDialog" type="button" aria-label="关闭"><i data-lucide="x"></i></button>
+      </header>
+      <div class="modal-body">
+        <p class="dialog-description" id="libraryDialogDescription"></p>
+        <label class="dialog-field" id="libraryDialogField">
+          <span class="field-label" id="libraryDialogLabel">名称</span>
+          <input class="text-input" id="libraryDialogInput" autocomplete="off" maxlength="80">
+        </label>
+      </div>
+      <footer class="modal-footer">
+        <button class="button" id="cancelLibraryDialog" type="button">取消</button>
+        <button class="button primary" id="confirmLibraryDialog" type="submit">确认</button>
+      </footer>
+    </form>
+  </div>
+
   <div class="toast" id="toast" role="status"><i data-lucide="check-circle-2"></i><span id="toastText">已完成</span></div>
 
   <script>
     const MARKDOWN_STORAGE_KEY = "ai-pm-workbench-markdown-v2";
+    const WORKSPACE_STORAGE_KEY = "ai-pm-workbench-prd-library-v1";
     const THEME_KEY = "ai-pm-workbench-theme";
     const MODEL_CONFIG_KEY = "ai-pm-workbench-model-v1";
     const MODEL_SECRET_KEY = "ai-pm-workbench-model-key";
@@ -1033,21 +1137,80 @@
 - 风险指标：`;
     }
 
-    let markdownDraft = loadMarkdown();
+    let workspaceData = loadWorkspace();
+    let markdownDraft = getActiveFile().content;
     let state = parseMarkdown(markdownDraft);
     let modelConfig = loadModelConfig();
     let chatController = null;
-    const aiGenerationHistory = [];
+    const aiGenerationHistory = new Map();
     let saveTimer;
     let toastTimer;
+    let libraryDialogAction = null;
+    let libraryDialogTrigger = null;
 
-    function loadMarkdown() {
+    function createId(prefix) {
+      return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function createDefaultWorkspace(content) {
+      const now = new Date().toISOString();
+      const folderId = createId("folder");
+      const fileId = createId("file");
+      return {
+        folders: [{ id: folderId, name: "产品 A", expanded: true }],
+        files: [{ id: fileId, folderId, name: "功能 A MVP.md", content, createdAt: now, updatedAt: now }],
+        activeFileId: fileId
+      };
+    }
+
+    function loadWorkspace() {
       try {
-        const saved = localStorage.getItem(MARKDOWN_STORAGE_KEY);
-        return saved === null ? DEFAULT_MARKDOWN : saved;
+        const savedWorkspace = JSON.parse(localStorage.getItem(WORKSPACE_STORAGE_KEY) || "null");
+        if (savedWorkspace && Array.isArray(savedWorkspace.folders) && Array.isArray(savedWorkspace.files) && savedWorkspace.files.length) {
+          const folders = savedWorkspace.folders
+            .filter((folder) => folder && typeof folder.id === "string")
+            .map((folder) => ({ id: folder.id, name: String(folder.name || "未命名目录"), expanded: folder.expanded !== false }));
+          const folderIds = new Set(folders.map((folder) => folder.id));
+          const files = savedWorkspace.files
+            .filter((file) => file && typeof file.id === "string")
+            .map((file) => ({
+              id: file.id,
+              folderId: folderIds.has(file.folderId) ? file.folderId : null,
+              name: String(file.name || "未命名 PRD.md"),
+              content: typeof file.content === "string" ? file.content : "",
+              createdAt: file.createdAt || new Date().toISOString(),
+              updatedAt: file.updatedAt || new Date().toISOString()
+            }));
+          if (files.length) {
+            return {
+              folders,
+              files,
+              activeFileId: files.some((file) => file.id === savedWorkspace.activeFileId) ? savedWorkspace.activeFileId : files[0].id
+            };
+          }
+        }
+        const legacyMarkdown = localStorage.getItem(MARKDOWN_STORAGE_KEY);
+        return createDefaultWorkspace(legacyMarkdown === null ? DEFAULT_MARKDOWN : legacyMarkdown);
       } catch (error) {
-        return DEFAULT_MARKDOWN;
+        return createDefaultWorkspace(DEFAULT_MARKDOWN);
       }
+    }
+
+    function getActiveFile() {
+      return workspaceData.files.find((file) => file.id === workspaceData.activeFileId) || workspaceData.files[0];
+    }
+
+    function syncDraftToActiveFile() {
+      const file = getActiveFile();
+      if (!file) return;
+      file.content = markdownDraft;
+      file.updatedAt = new Date().toISOString();
+    }
+
+    function persistWorkspace() {
+      syncDraftToActiveFile();
+      localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(workspaceData));
+      localStorage.setItem(MARKDOWN_STORAGE_KEY, markdownDraft);
     }
 
     function loadModelConfig() {
@@ -1115,7 +1278,7 @@
       saveState.textContent = "正在保存...";
       window.clearTimeout(saveTimer);
       saveTimer = window.setTimeout(() => {
-        localStorage.setItem(MARKDOWN_STORAGE_KEY, markdownDraft);
+        persistWorkspace();
         saveState.textContent = `已保存 · ${new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`;
       }, 350);
     }
@@ -1129,6 +1292,299 @@
       if (className) element.className = className;
       if (text !== undefined) element.textContent = text;
       return element;
+    }
+
+    function createTreeIconButton(iconName, label, onClick, danger = false) {
+      const button = createElement("button", `tree-icon-button${danger ? " danger" : ""}`);
+      button.type = "button";
+      button.setAttribute("aria-label", label);
+      button.title = label;
+      const icon = document.createElement("i");
+      icon.setAttribute("data-lucide", iconName);
+      button.appendChild(icon);
+      button.addEventListener("click", (event) => {
+        event.stopPropagation();
+        onClick();
+      });
+      return button;
+    }
+
+    function normalizeFileName(name) {
+      const clean = String(name || "").trim().replace(/[\\/:*?"<>|]/g, "-");
+      if (!clean) return "未命名 PRD.md";
+      return /\.md$/i.test(clean) ? clean : `${clean}.md`;
+    }
+
+    function refreshActiveDocument() {
+      const file = getActiveFile();
+      markdownDraft = file?.content || "";
+      state = parseMarkdown(markdownDraft);
+      document.getElementById("markdownEditor").value = markdownDraft;
+      document.getElementById("activeFileName").textContent = file?.name || "未命名 PRD.md";
+      updateMarkdownStats();
+      renderPreview();
+      updateProgress();
+      updateUndoButton();
+      renderPrdLibrary();
+    }
+
+    function activateFile(fileId) {
+      if (chatController) {
+        showToast("AI 正在生成，请稍后切换文件");
+        return;
+      }
+      if (fileId === workspaceData.activeFileId) return;
+      const target = workspaceData.files.find((file) => file.id === fileId);
+      if (!target) return;
+      window.clearTimeout(saveTimer);
+      syncDraftToActiveFile();
+      workspaceData.activeFileId = target.id;
+      refreshActiveDocument();
+      persistWorkspace();
+      document.getElementById("saveState").textContent = "已保存到本机";
+      if (window.innerWidth <= 820) {
+        document.getElementById("sidebar").classList.remove("open");
+        document.getElementById("sidebarBackdrop").classList.remove("open");
+      }
+    }
+
+    function openLibraryDialog({ title, description = "", inputLabel = "", initialValue = "", confirmLabel = "确认", destructive = false, onConfirm }) {
+      libraryDialogTrigger = document.activeElement;
+      libraryDialogAction = onConfirm;
+      document.getElementById("libraryDialogTitle").textContent = title;
+      document.getElementById("libraryDialogDescription").textContent = description;
+      document.getElementById("libraryDialogLabel").textContent = inputLabel;
+      const field = document.getElementById("libraryDialogField");
+      const input = document.getElementById("libraryDialogInput");
+      field.classList.toggle("hidden", !inputLabel);
+      input.value = initialValue;
+      input.required = Boolean(inputLabel);
+      const confirmButton = document.getElementById("confirmLibraryDialog");
+      confirmButton.textContent = confirmLabel;
+      confirmButton.className = `button ${destructive ? "destructive" : "primary"}`;
+      setModalOpen("libraryDialog", true);
+      window.setTimeout(() => (inputLabel ? input : confirmButton).focus(), 0);
+    }
+
+    function closeLibraryDialog() {
+      setModalOpen("libraryDialog", false);
+      libraryDialogAction = null;
+      if (libraryDialogTrigger) libraryDialogTrigger.focus();
+    }
+
+    function submitLibraryDialog(event) {
+      event.preventDefault();
+      const fieldVisible = !document.getElementById("libraryDialogField").classList.contains("hidden");
+      const value = document.getElementById("libraryDialogInput").value.trim();
+      if (fieldVisible && !value) {
+        document.getElementById("libraryDialogInput").focus();
+        return;
+      }
+      const action = libraryDialogAction;
+      setModalOpen("libraryDialog", false);
+      libraryDialogAction = null;
+      if (action) action(value);
+    }
+
+    function renameFolder(folder) {
+      openLibraryDialog({
+        title: "重命名目录",
+        inputLabel: "目录名称",
+        initialValue: folder.name,
+        confirmLabel: "保存",
+        onConfirm: (name) => {
+          folder.name = name;
+          persistWorkspace();
+          renderPrdLibrary();
+          showToast("目录已重命名");
+        }
+      });
+    }
+
+    function renameFile(file) {
+      openLibraryDialog({
+        title: "重命名 PRD",
+        inputLabel: "文件名称",
+        initialValue: file.name.replace(/\.md$/i, ""),
+        confirmLabel: "保存",
+        onConfirm: (name) => {
+          file.name = normalizeFileName(name);
+          file.updatedAt = new Date().toISOString();
+          persistWorkspace();
+          renderPrdLibrary();
+          if (file.id === workspaceData.activeFileId) document.getElementById("activeFileName").textContent = file.name;
+          showToast("文件已重命名");
+        }
+      });
+    }
+
+    function ensureEditableFile() {
+      if (workspaceData.files.length) return;
+      const now = new Date().toISOString();
+      const file = { id: createId("file"), folderId: null, name: "未命名 PRD.md", content: blankMarkdown(), createdAt: now, updatedAt: now };
+      workspaceData.files.push(file);
+      workspaceData.activeFileId = file.id;
+    }
+
+    function deleteFile(file) {
+      if (chatController) {
+        showToast("AI 正在生成，暂时不能删除文件");
+        return;
+      }
+      openLibraryDialog({
+        title: "删除 PRD 文件",
+        description: `“${file.name}”删除后无法恢复。`,
+        confirmLabel: "删除",
+        destructive: true,
+        onConfirm: () => {
+          syncDraftToActiveFile();
+          workspaceData.files = workspaceData.files.filter((item) => item.id !== file.id);
+          aiGenerationHistory.delete(file.id);
+          ensureEditableFile();
+          if (!workspaceData.files.some((item) => item.id === workspaceData.activeFileId)) workspaceData.activeFileId = workspaceData.files[0].id;
+          refreshActiveDocument();
+          persistWorkspace();
+          showToast("PRD 文件已删除");
+        }
+      });
+    }
+
+    function deleteFolder(folder) {
+      if (chatController) {
+        showToast("AI 正在生成，暂时不能删除目录");
+        return;
+      }
+      const files = workspaceData.files.filter((file) => file.folderId === folder.id);
+      const detail = files.length ? `，其中 ${files.length} 个 PRD 文件也会一并删除` : "";
+      openLibraryDialog({
+        title: "删除目录",
+        description: `“${folder.name}”${detail}。删除后无法恢复。`,
+        confirmLabel: "删除",
+        destructive: true,
+        onConfirm: () => {
+          syncDraftToActiveFile();
+          const deletedIds = new Set(files.map((file) => file.id));
+          workspaceData.folders = workspaceData.folders.filter((item) => item.id !== folder.id);
+          workspaceData.files = workspaceData.files.filter((file) => !deletedIds.has(file.id));
+          deletedIds.forEach((id) => aiGenerationHistory.delete(id));
+          ensureEditableFile();
+          if (!workspaceData.files.some((file) => file.id === workspaceData.activeFileId)) workspaceData.activeFileId = workspaceData.files[0].id;
+          refreshActiveDocument();
+          persistWorkspace();
+          showToast("目录已删除");
+        }
+      });
+    }
+
+    function createPrdFolder() {
+      openLibraryDialog({
+        title: "新建目录",
+        inputLabel: "目录名称",
+        initialValue: "新产品",
+        confirmLabel: "创建",
+        onConfirm: (name) => {
+          workspaceData.folders.push({ id: createId("folder"), name, expanded: true });
+          persistWorkspace();
+          renderPrdLibrary();
+          showToast("目录已创建");
+        }
+      });
+    }
+
+    function createPrdFile(folderId = undefined) {
+      if (chatController) {
+        showToast("AI 正在生成，请稍后新建文件");
+        return;
+      }
+      const activeFolderId = getActiveFile()?.folderId || null;
+      const targetFolderId = folderId === undefined ? activeFolderId : folderId;
+      openLibraryDialog({
+        title: "新建 PRD 文件",
+        inputLabel: "文件名称",
+        initialValue: "新功能 PRD",
+        confirmLabel: "创建",
+        onConfirm: (name) => {
+          syncDraftToActiveFile();
+          const now = new Date().toISOString();
+          const file = {
+            id: createId("file"),
+            folderId: workspaceData.folders.some((folder) => folder.id === targetFolderId) ? targetFolderId : null,
+            name: normalizeFileName(name),
+            content: blankMarkdown(),
+            createdAt: now,
+            updatedAt: now
+          };
+          workspaceData.files.push(file);
+          workspaceData.activeFileId = file.id;
+          refreshActiveDocument();
+          persistWorkspace();
+          document.getElementById("markdownEditor").focus();
+          showToast("新 PRD 文件已创建");
+        }
+      });
+    }
+
+    function renderFileRow(file, parent) {
+      const row = createElement("div", `tree-row${file.id === workspaceData.activeFileId ? " active" : ""}`);
+      row.dataset.fileId = file.id;
+      const main = createElement("button", "tree-main");
+      main.type = "button";
+      main.title = file.name;
+      main.setAttribute("aria-current", file.id === workspaceData.activeFileId ? "page" : "false");
+      const icon = document.createElement("i");
+      icon.setAttribute("data-lucide", "file-text");
+      main.append(icon, createElement("span", "tree-name", file.name));
+      main.addEventListener("click", () => activateFile(file.id));
+      main.addEventListener("dblclick", () => renameFile(file));
+      const actions = createElement("div", "tree-actions");
+      actions.append(
+        createTreeIconButton("pencil", "重命名文件", () => renameFile(file)),
+        createTreeIconButton("trash-2", "删除文件", () => deleteFile(file), true)
+      );
+      row.append(main, actions);
+      parent.appendChild(row);
+    }
+
+    function renderPrdLibrary() {
+      const tree = document.getElementById("prdTree");
+      if (!tree) return;
+      tree.replaceChildren();
+      workspaceData.folders.forEach((folder) => {
+        const section = createElement("section", `tree-folder${folder.expanded ? "" : " collapsed"}`);
+        const row = createElement("div", "tree-row");
+        const main = createElement("button", "tree-main");
+        main.type = "button";
+        main.setAttribute("aria-expanded", String(folder.expanded));
+        const icon = document.createElement("i");
+        icon.setAttribute("data-lucide", folder.expanded ? "folder-open" : "folder");
+        main.append(icon, createElement("span", "tree-name", folder.name));
+        main.addEventListener("click", () => {
+          folder.expanded = !folder.expanded;
+          persistWorkspace();
+          renderPrdLibrary();
+        });
+        main.addEventListener("dblclick", () => renameFolder(folder));
+        const actions = createElement("div", "tree-actions");
+        actions.append(
+          createTreeIconButton("file-plus-2", "在目录中新建 PRD", () => createPrdFile(folder.id)),
+          createTreeIconButton("pencil", "重命名目录", () => renameFolder(folder)),
+          createTreeIconButton("trash-2", "删除目录", () => deleteFolder(folder), true)
+        );
+        row.append(main, actions);
+        const filesWrap = createElement("div", "tree-files");
+        const files = workspaceData.files.filter((file) => file.folderId === folder.id);
+        files.forEach((file) => renderFileRow(file, filesWrap));
+        if (!files.length) filesWrap.appendChild(createElement("div", "tree-empty", "暂无 PRD 文件"));
+        section.append(row, filesWrap);
+        tree.appendChild(section);
+      });
+
+      const rootFiles = workspaceData.files.filter((file) => !file.folderId);
+      if (rootFiles.length) {
+        tree.appendChild(createElement("div", "tree-root-label", "未归档"));
+        rootFiles.forEach((file) => renderFileRow(file, tree));
+      }
+      lucide.createIcons();
     }
 
     function makePreviewEditable(element, value, metadata, label) {
@@ -1676,18 +2132,25 @@
       ];
     }
 
+    function getActiveAiHistory() {
+      const fileId = workspaceData.activeFileId;
+      if (!aiGenerationHistory.has(fileId)) aiGenerationHistory.set(fileId, []);
+      return aiGenerationHistory.get(fileId);
+    }
+
     function updateUndoButton() {
-      document.getElementById("chatUndo").disabled = Boolean(chatController) || aiGenerationHistory.length === 0;
+      document.getElementById("chatUndo").disabled = Boolean(chatController) || getActiveAiHistory().length === 0;
     }
 
     function clearAiHistory() {
-      aiGenerationHistory.length = 0;
+      aiGenerationHistory.set(workspaceData.activeFileId, []);
       updateUndoButton();
     }
 
     function undoAiGeneration() {
-      if (!aiGenerationHistory.length || chatController) return;
-      const previousMarkdown = aiGenerationHistory.pop();
+      const history = getActiveAiHistory();
+      if (!history.length || chatController) return;
+      const previousMarkdown = history.pop();
       setMarkdownContent(previousMarkdown, "已撤销上次 AI 生成");
       appendChatMessage("assistant", "已恢复生成前的 Markdown。");
       updateUndoButton();
@@ -1699,7 +2162,7 @@
       button.classList.toggle("loading", busy);
       document.getElementById("chatModelStatus").disabled = busy;
       document.getElementById("chatPrompt").disabled = busy;
-      document.getElementById("chatUndo").disabled = busy || aiGenerationHistory.length === 0;
+      document.getElementById("chatUndo").disabled = busy || getActiveAiHistory().length === 0;
     }
 
     function generationErrorMessage(error, status) {
@@ -1783,7 +2246,7 @@
         if (typeof content !== "string" || !content.trim()) throw new Error("模型没有返回可用内容。");
         const generatedMarkdown = normalizeGeneratedPrd(content);
         validateGeneratedPrd(generatedMarkdown);
-        aiGenerationHistory.push(markdownDraft);
+        getActiveAiHistory().push(markdownDraft);
         chatController = null;
         setMarkdownContent(generatedMarkdown, "完整 PRD 已生成");
         pendingMessage.textContent = "完整 PRD 已写入上方 Markdown，可继续编辑或撤销。";
@@ -1835,7 +2298,7 @@
       updateMarkdownStats();
       renderPreview();
       updateProgress();
-      localStorage.setItem(MARKDOWN_STORAGE_KEY, markdownDraft);
+      persistWorkspace();
       closeMoreMenu();
       showToast(message);
     }
@@ -1905,6 +2368,12 @@
     document.getElementById("modelSettingsModal").addEventListener("click", (event) => {
       if (event.target === event.currentTarget) closeModelSettings();
     });
+    document.getElementById("closeLibraryDialog").addEventListener("click", closeLibraryDialog);
+    document.getElementById("cancelLibraryDialog").addEventListener("click", closeLibraryDialog);
+    document.getElementById("libraryDialogForm").addEventListener("submit", submitLibraryDialog);
+    document.getElementById("libraryDialog").addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) closeLibraryDialog();
+    });
     document.getElementById("modelProvider").addEventListener("change", (event) => {
       const preset = MODEL_PRESETS[event.target.value];
       document.getElementById("modelEndpoint").value = preset.endpoint;
@@ -1919,18 +2388,26 @@
     });
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
-      if (document.getElementById("modelSettingsModal").classList.contains("open")) closeModelSettings();
+      if (document.getElementById("libraryDialog").classList.contains("open")) closeLibraryDialog();
+      else if (document.getElementById("modelSettingsModal").classList.contains("open")) closeModelSettings();
       else if (document.querySelector(".preview-pane").classList.contains("preview-fullscreen")) setPreviewFullscreen(false);
     });
     document.getElementById("blankButton").addEventListener("click", () => {
-      clearAiHistory();
-      setMarkdownContent(blankMarkdown(), "已新建空白 PRD");
+      closeMoreMenu();
+      createPrdFile();
     });
     document.getElementById("clearButton").addEventListener("click", () => {
-      if (window.confirm("确认清空当前 PRD？该操作无法撤销。")) {
-        clearAiHistory();
-        setMarkdownContent("", "当前 PRD 已清空");
-      }
+      closeMoreMenu();
+      openLibraryDialog({
+        title: "清空当前 PRD",
+        description: `“${getActiveFile().name}”的全部内容将被清空，且无法恢复。`,
+        confirmLabel: "清空",
+        destructive: true,
+        onConfirm: () => {
+          clearAiHistory();
+          setMarkdownContent("", "当前 PRD 已清空");
+        }
+      });
     });
     document.getElementById("moreButton").addEventListener("click", (event) => {
       event.stopPropagation();
@@ -1954,12 +2431,13 @@
     });
     document.getElementById("editTab").addEventListener("click", () => toggleMobilePreview(false));
     document.getElementById("previewTab").addEventListener("click", () => toggleMobilePreview(true));
+    document.getElementById("createFolderButton").addEventListener("click", createPrdFolder);
+    document.getElementById("createFileButton").addEventListener("click", () => createPrdFile());
 
     applyTheme(localStorage.getItem(THEME_KEY) || "dark");
     bindMarkdownEditor();
     bindPreviewEditor();
-    renderPreview();
-    updateProgress();
+    refreshActiveDocument();
     updateModelStatus();
     lucide.createIcons();
   </script>
