@@ -9,7 +9,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;600;700&family=Noto+Sans+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="prototype/prototype.css">
   <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js"></script>
+  <script src="prototype/vendor/html-to-image.min.js"></script>
   <style>
     :root[data-theme="dark"] {
       --color-bg: #111310;
@@ -832,17 +834,17 @@
         <div class="nav-label">产品工作流</div>
         <ol class="workflow-list">
           <li>
-            <button class="workflow-item active" type="button" aria-current="page">
+            <button class="workflow-item active" id="prdWorkflowButton" type="button" aria-current="page">
               <span class="workflow-icon"><i data-lucide="file-pen-line"></i></span>
               <span><span class="workflow-name">PRD 制作</span><span class="workflow-desc">定义需求与验收</span></span>
               <span class="step-number">01</span>
             </button>
           </li>
           <li>
-            <button class="workflow-item" type="button" disabled>
+            <button class="workflow-item" id="prototypeWorkflowButton" type="button">
               <span class="workflow-icon"><i data-lucide="panels-top-left"></i></span>
               <span><span class="workflow-name">原型设计</span><span class="workflow-desc">页面与交互方案</span></span>
-              <span class="soon-tag">即将开放</span>
+              <span class="step-number">02</span>
             </button>
           </li>
           <li>
@@ -878,7 +880,7 @@
     </aside>
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-    <main class="workspace">
+    <main class="workspace" id="prdWorkspace">
       <header class="topbar">
         <div class="project-block">
           <button class="icon-button mobile-menu" id="mobileMenu" type="button" aria-label="打开工作流"><i data-lucide="menu"></i></button>
@@ -3044,6 +3046,22 @@
     refreshActiveDocument();
     updateModelStatus();
     lucide.createIcons();
+
+    window.AIPMPrdApi = {
+      listFiles: () => workspaceData.files.map((file) => ({
+        id: file.id,
+        name: file.name,
+        title: parseMarkdown(file.content).title,
+        updatedAt: file.updatedAt,
+        latestVersionId: file.versions?.[0]?.id || null
+      })),
+      getActiveFile: () => JSON.parse(JSON.stringify(getActiveFile())),
+      getFile: (fileId) => {
+        const file = workspaceData.files.find((item) => item.id === fileId);
+        return file ? JSON.parse(JSON.stringify(file)) : null;
+      }
+    };
   </script>
+  <script src="prototype/prototype.js"></script>
 </body>
 </html>
