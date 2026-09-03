@@ -307,9 +307,13 @@
       border-bottom: 1px solid var(--color-border);
       background: var(--color-surface);
     }
-    .markdown-file { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; }
+    .markdown-file { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 11px; font-weight: 700; }
     .markdown-file .lucide { color: var(--color-accent); }
+    .markdown-file span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .markdown-stats { color: var(--color-text-muted); font-size: 10px; }
+    .markdown-editor-meta { display: flex; align-items: center; gap: 7px; min-width: 0; }
+    .markdown-editor-actions { display: flex; align-items: center; gap: 3px; }
+    .markdown-editor-actions .icon-button { width: 30px; height: 30px; background: transparent; }
     .markdown-editor-wrap { min-width: 0; min-height: 0; padding: 18px; background: var(--color-bg); }
     .markdown-editor {
       display: block;
@@ -634,6 +638,27 @@
     .dialog-field.hidden { display: none; }
     .button.destructive { border-color: var(--color-danger); background: var(--color-danger); color: #fff; }
     .modal-field-stack { display: grid; gap: 15px; }
+    .modal-list { display: grid; gap: 8px; }
+    .modal-section + .modal-section { margin-top: 22px; }
+    .modal-section-title { margin-bottom: 10px; color: var(--color-text-muted); font-size: 11px; font-weight: 700; }
+    .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .template-item, .version-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+      padding: 12px;
+      border: 1px solid var(--color-border);
+      border-radius: 7px;
+      background: var(--color-input);
+    }
+    .template-copy, .version-copy { min-width: 0; }
+    .template-name, .version-name { overflow: hidden; font-size: 12px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+    .template-desc, .version-meta { margin-top: 4px; color: var(--color-text-muted); font-size: 10px; line-height: 1.5; }
+    .template-actions, .version-actions { display: flex; flex: 0 0 auto; gap: 4px; }
+    .template-actions .button, .version-actions .button { width: auto; height: 32px; padding: 0 9px; }
+    .version-empty { padding: 28px 12px; color: var(--color-text-muted); font-size: 11px; text-align: center; }
     .select-input { appearance: auto; }
     .secret-field { position: relative; }
     .secret-field .text-input { padding-right: 44px; }
@@ -758,6 +783,7 @@
       .pane-inner { padding: 22px 18px 54px; overflow-x: hidden; }
       .markdown-editor-wrap { padding: 12px; }
       .markdown-editor { padding: 14px; font-size: 12px; }
+      .markdown-stats { display: none; }
       .markdown-workspace, .markdown-workspace.chat-collapsed { grid-template-rows: 44px minmax(0, 1fr); }
       .ai-chat-header { padding-inline: 12px; }
       .ai-chat-messages { padding: 10px 12px; }
@@ -784,6 +810,7 @@
       .modal.library-modal { width: calc(100% - 28px); height: auto; border: 1px solid var(--color-border-strong); border-radius: 8px; }
       .modal-body { padding: 14px; }
       .modal-footer { padding-inline: 14px; }
+      .template-grid { grid-template-columns: 1fr; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -869,7 +896,8 @@
         <div class="menu" id="moreMenu">
           <button id="menuModelSettingsButton" type="button"><i data-lucide="settings-2"></i>模型设置</button>
           <div class="menu-divider"></div>
-          <button id="menuExampleButton" type="button"><i data-lucide="sparkles"></i>恢复默认脱敏案例</button>
+          <button id="menuTemplateButton" type="button"><i data-lucide="layout-template"></i>PRD 模板库</button>
+          <button id="menuVersionHistoryButton" type="button"><i data-lucide="history"></i>版本历史</button>
           <button id="menuThemeButton" type="button"><i data-lucide="sun-moon"></i>切换明暗主题</button>
           <div class="menu-divider"></div>
           <button id="downloadButton" type="button"><i data-lucide="download"></i>下载 Markdown</button>
@@ -889,7 +917,15 @@
           <div class="markdown-workspace chat-collapsed" id="markdownWorkspace">
             <div class="markdown-editor-header">
               <div class="markdown-file"><i data-lucide="file-code-2"></i><span id="activeFileName">PRD.md</span></div>
-              <div class="markdown-stats" id="markdownStats">0 行 · 0 字</div>
+              <div class="markdown-editor-meta">
+                <div class="markdown-stats" id="markdownStats">0 行 · 0 字</div>
+                <div class="markdown-editor-actions">
+                  <button class="icon-button" id="undoButton" type="button" aria-label="撤销" title="撤销" disabled><i data-lucide="undo-2"></i></button>
+                  <button class="icon-button" id="redoButton" type="button" aria-label="重做" title="重做" disabled><i data-lucide="redo-2"></i></button>
+                  <button class="icon-button" id="versionHistoryButton" type="button" aria-label="版本历史" title="版本历史"><i data-lucide="history"></i></button>
+                  <button class="icon-button" id="templateLibraryButton" type="button" aria-label="PRD 模板库" title="PRD 模板库"><i data-lucide="layout-template"></i></button>
+                </div>
+              </div>
             </div>
             <div class="markdown-editor-wrap">
               <textarea class="markdown-editor" id="markdownEditor" aria-label="PRD Markdown 内容" spellcheck="false"></textarea>
@@ -997,6 +1033,45 @@
     </form>
   </div>
 
+  <div class="modal-backdrop" id="templateModal" aria-hidden="true">
+    <section class="modal" role="dialog" aria-modal="true" aria-labelledby="templateModalTitle">
+      <header class="modal-header">
+        <h2 class="modal-title" id="templateModalTitle">PRD 模板库</h2>
+        <button class="icon-button" id="closeTemplateModal" type="button" aria-label="关闭模板库"><i data-lucide="x"></i></button>
+      </header>
+      <div class="modal-body">
+        <section class="modal-section">
+          <h3 class="modal-section-title">内置模板</h3>
+          <div class="template-grid" id="builtinTemplateList"></div>
+        </section>
+        <section class="modal-section">
+          <h3 class="modal-section-title">我的模板</h3>
+          <div class="modal-list" id="customTemplateList"></div>
+        </section>
+      </div>
+      <footer class="modal-footer">
+        <button class="button" id="cancelTemplateModal" type="button">关闭</button>
+        <button class="button primary" id="saveAsTemplateButton" type="button"><i data-lucide="bookmark-plus"></i>将当前 PRD 存为模板</button>
+      </footer>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="versionHistoryModal" aria-hidden="true">
+    <section class="modal compact" role="dialog" aria-modal="true" aria-labelledby="versionHistoryTitle">
+      <header class="modal-header">
+        <h2 class="modal-title" id="versionHistoryTitle">版本历史</h2>
+        <button class="icon-button" id="closeVersionHistory" type="button" aria-label="关闭版本历史"><i data-lucide="x"></i></button>
+      </header>
+      <div class="modal-body">
+        <div class="modal-list" id="versionHistoryList"></div>
+      </div>
+      <footer class="modal-footer">
+        <button class="button" id="cancelVersionHistory" type="button">关闭</button>
+        <button class="button primary" id="saveVersionButton" type="button"><i data-lucide="save"></i>保存当前版本</button>
+      </footer>
+    </section>
+  </div>
+
   <div class="toast" id="toast" role="status"><i data-lucide="check-circle-2"></i><span id="toastText">已完成</span></div>
 
   <script>
@@ -1005,6 +1080,7 @@
     const THEME_KEY = "ai-pm-workbench-theme";
     const MODEL_CONFIG_KEY = "ai-pm-workbench-model-v1";
     const MODEL_SECRET_KEY = "ai-pm-workbench-model-key";
+    const TEMPLATE_STORAGE_KEY = "ai-pm-workbench-custom-templates-v1";
     const LOCAL_MODEL_PROXY_ENDPOINT = "/api/chat/completions";
     const MODEL_PRESETS = {
       openai: { label: "OpenAI", endpoint: "https://api.openai.com/v1/chat/completions", model: "gpt-4.1-mini" },
@@ -1117,6 +1193,138 @@
 - 业务指标：进入页到提交转化率 ≥ 35%；成功结果下载率 ≥ 40%；7 日复用率 ≥ 15%。
 - 风险指标：违规内容按安全策略拦截；有效投诉率 ≤ 0.1%；原始图片和结果按现有隐私政策留存与删除。`;
 
+    const AI_PRODUCT_TEMPLATE = `# AI 知识助手 MVP
+
+负责人：AI 产品组
+版本：MVP · V1.0
+
+## 1. 背景和场景
+- 用户与场景：知识工作者需要从多份内部资料中快速定位答案并追溯来源。
+- 当前问题：人工检索耗时，通用模型无法稳定理解企业私有知识。
+- 触发时机：用户遇到业务问题并希望基于指定资料获得答案。
+
+## 2. 目标
+- 用户目标：输入问题后 15 秒内获得带引用来源的可用答案。
+- 业务目标：验证知识问答的准确性与周活使用需求。
+- 非目标：MVP 不自动执行外部操作，不替代专业审批与最终决策。
+
+## 3. 需求范围
+- 输入：自然语言问题；管理员已导入并完成解析的文档。
+- 核心能力：问题理解、知识检索、答案生成、来源引用和反馈收集。
+- 输出：结构化答案、引用片段、原文入口和重新生成入口。
+- 约束：无可靠依据时明确说明无法回答；严格按用户权限检索资料。
+- MVP 不包含：多智能体工作流、自动写回业务系统、语音交互。
+
+## 4. 流程
+- 主流程：输入问题 → 检索资料 → 生成答案 → 查看引用 → 采纳或反馈。
+- 异常与空状态：无匹配资料、资料解析失败、模型超时、敏感问题拦截。
+- 失败后的动作：推荐调整问题或补充资料；失败不计额度并支持重试。
+
+## 5. 埋点
+| 事件 | 触发时机 | 必要属性 |
+| --- | --- | --- |
+| ai_query_submit | 提交问题 | query_length, source_count |
+| ai_answer_result | 答案返回 | status, latency_ms, citation_count |
+| ai_answer_feedback | 用户反馈 | feedback_type, answer_id |
+
+## 6. 标准和指标
+- 功能验收：问题、答案、引用和反馈链路完整；权限隔离有效。
+- AI 质量：有答案问题引用准确率 ≥ 90%；人工评审可用率 ≥ 85%。
+- 性能：P95 答案返回时延 ≤ 15 秒；失败率 ≤ 3%。
+- 业务指标：答案采纳率 ≥ 50%；目标用户周活率 ≥ 30%。
+- 风险指标：越权召回率为 0；敏感内容按安全策略拦截。`;
+
+    const B2B_SYSTEM_TEMPLATE = `# 企业工单协同系统 MVP
+
+负责人：企业产品组
+版本：MVP · V1.0
+
+## 1. 背景和场景
+- 用户与场景：客服、实施和研发团队需要协同处理客户问题。
+- 当前问题：问题散落在群聊和表格中，责任人、状态和处理时效不透明。
+- 触发时机：客户提交问题，或内部人员发现需要跨团队跟进的事项。
+
+## 2. 目标
+- 用户目标：快速创建、分派、跟踪并关闭工单。
+- 业务目标：缩短问题处理周期，形成可追踪的服务过程数据。
+- 非目标：MVP 不替代完整 CRM，不覆盖现场服务和财务结算。
+
+## 3. 需求范围
+- 输入：客户、问题类型、优先级、问题描述和附件。
+- 核心能力：工单创建、分派、状态流转、评论、提醒和列表筛选。
+- 输出：工单详情、处理记录、待办列表和基础统计。
+- 约束：按组织和角色控制查看及操作权限；关键操作保留审计记录。
+- MVP 不包含：复杂 SLA 策略、自定义流程引擎、跨租户协作。
+
+## 4. 流程
+- 主流程：创建工单 → 分派责任人 → 接单处理 → 提交结果 → 验收关闭。
+- 异常与空状态：无可分派人员、附件上传失败、工单超时、验收驳回。
+- 失败后的动作：保留草稿并提示补充信息；超时升级提醒管理员。
+
+## 5. 埋点
+| 事件 | 触发时机 | 必要属性 |
+| --- | --- | --- |
+| ticket_create | 创建工单 | source, priority, category |
+| ticket_assign | 分派责任人 | role, queue_time |
+| ticket_status_change | 状态变更 | from_status, to_status |
+| ticket_close | 工单关闭 | duration, reopen_count |
+
+## 6. 标准和指标
+- 功能验收：工单主流程可闭环；权限和审计记录符合设计。
+- AI 质量：不适用。
+- 性能：列表 P95 加载 ≤ 2 秒；状态更新成功率 ≥ 99.9%。
+- 业务指标：平均首次响应时长下降 30%；按时关闭率 ≥ 90%。
+- 风险指标：越权访问为 0；关键操作日志完整率 100%。`;
+
+    const ECOMMERCE_TEMPLATE = `# 商品详情转化优化 MVP
+
+负责人：电商产品组
+版本：MVP · V1.0
+
+## 1. 背景和场景
+- 用户与场景：消费者浏览商品详情并判断是否加入购物车或立即购买。
+- 当前问题：核心卖点不突出，规格选择与优惠信息分散，决策成本较高。
+- 触发时机：用户从搜索、推荐或活动页进入商品详情页。
+
+## 2. 目标
+- 用户目标：快速理解商品价值、确认价格库存并完成购买决策。
+- 业务目标：提升详情页加购率和支付转化率。
+- 非目标：MVP 不调整搜索推荐算法，不改造履约和售后系统。
+
+## 3. 需求范围
+- 输入：商品信息、图片、规格、库存、价格、优惠和评价摘要。
+- 核心能力：首屏卖点展示、规格选择、优惠聚合、配送说明和购买操作。
+- 输出：已选规格与到手价、库存状态、加购或结算结果。
+- 约束：价格库存实时校验；售罄规格不可选择；促销规则与交易系统一致。
+- MVP 不包含：直播、社区内容、个性化装修和跨店组合优惠。
+
+## 4. 流程
+- 主流程：进入详情页 → 浏览卖点 → 选择规格 → 确认优惠 → 加购或购买。
+- 异常与空状态：商品下架、规格售罄、价格变化、优惠失效、网络失败。
+- 失败后的动作：刷新实时信息并保留可用选择；支付前再次确认价格库存。
+
+## 5. 埋点
+| 事件 | 触发时机 | 必要属性 |
+| --- | --- | --- |
+| product_detail_view | 进入详情页 | source, product_id |
+| sku_select | 选择规格 | sku_id, stock_status |
+| product_add_cart | 加入购物车 | sku_id, price, promotion_id |
+| product_buy_click | 点击立即购买 | sku_id, final_price |
+
+## 6. 标准和指标
+- 功能验收：价格、库存、规格和优惠展示正确；购买主链路可用。
+- AI 质量：不适用。
+- 性能：首屏 P75 加载 ≤ 2 秒；核心接口成功率 ≥ 99.9%。
+- 业务指标：详情页加购率提升 8%；支付转化率提升 3%。
+- 风险指标：价格展示错误率为 0；超卖率不高于现有基线。`;
+
+    const BUILTIN_TEMPLATES = [
+      { id: "default", name: "图片能力 MVP", description: "当前默认脱敏案例", content: DEFAULT_MARKDOWN },
+      { id: "ai-product", name: "AI 产品", description: "知识问答、引用与 AI 质量指标", content: AI_PRODUCT_TEMPLATE },
+      { id: "b2b-system", name: "B 端系统产品", description: "角色权限、业务流转与审计", content: B2B_SYSTEM_TEMPLATE },
+      { id: "ecommerce", name: "传统电商产品", description: "商品详情、交易转化与性能", content: ECOMMERCE_TEMPLATE }
+    ];
+
     function blankMarkdown() {
       return `# 未命名产品需求
 
@@ -1161,9 +1369,12 @@
     let markdownDraft = getActiveFile().content;
     let state = parseMarkdown(markdownDraft);
     let modelConfig = loadModelConfig();
+    let customTemplates = loadCustomTemplates();
     let chatController = null;
     const aiGenerationHistory = new Map();
+    const documentHistories = new Map();
     let saveTimer;
+    let versionTimer;
     let toastTimer;
     let libraryDialogAction = null;
     let libraryDialogTrigger = null;
@@ -1178,7 +1389,7 @@
       const fileId = createId("file");
       return {
         folders: [{ id: folderId, name: "产品 A", expanded: true }],
-        files: [{ id: fileId, folderId, name: "功能 A MVP.md", content, createdAt: now, updatedAt: now }],
+        files: [{ id: fileId, folderId, name: "功能 A MVP.md", content, createdAt: now, updatedAt: now, versions: [createVersionRecord(content, "初始版本", now)] }],
         activeFileId: fileId
       };
     }
@@ -1193,14 +1404,27 @@
           const folderIds = new Set(folders.map((folder) => folder.id));
           const files = savedWorkspace.files
             .filter((file) => file && typeof file.id === "string")
-            .map((file) => ({
-              id: file.id,
-              folderId: folderIds.has(file.folderId) ? file.folderId : null,
-              name: String(file.name || "未命名 PRD.md"),
-              content: typeof file.content === "string" ? file.content : "",
-              createdAt: file.createdAt || new Date().toISOString(),
-              updatedAt: file.updatedAt || new Date().toISOString()
-            }));
+            .map((file) => {
+              const content = typeof file.content === "string" ? file.content : "";
+              const createdAt = file.createdAt || new Date().toISOString();
+              const versions = Array.isArray(file.versions)
+                ? file.versions.filter((version) => version && typeof version.content === "string").slice(0, 20).map((version) => ({
+                    id: String(version.id || createId("version")),
+                    content: version.content,
+                    label: String(version.label || "历史版本"),
+                    createdAt: version.createdAt || createdAt
+                  }))
+                : [];
+              return {
+                id: file.id,
+                folderId: folderIds.has(file.folderId) ? file.folderId : null,
+                name: String(file.name || "未命名 PRD.md"),
+                content,
+                createdAt,
+                updatedAt: file.updatedAt || createdAt,
+                versions: versions.length ? versions : [createVersionRecord(content, "迁移版本", createdAt)]
+              };
+            });
           if (files.length) {
             return {
               folders,
@@ -1231,6 +1455,94 @@
       syncDraftToActiveFile();
       localStorage.setItem(WORKSPACE_STORAGE_KEY, JSON.stringify(workspaceData));
       localStorage.setItem(MARKDOWN_STORAGE_KEY, markdownDraft);
+    }
+
+    function createVersionRecord(content, label, createdAt = new Date().toISOString()) {
+      return { id: createId("version"), content, label, createdAt };
+    }
+
+    function loadCustomTemplates() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(TEMPLATE_STORAGE_KEY) || "[]");
+        return Array.isArray(saved)
+          ? saved.filter((template) => template && typeof template.content === "string").map((template) => ({
+              id: String(template.id || createId("template")),
+              name: String(template.name || "未命名模板"),
+              content: template.content,
+              createdAt: template.createdAt || new Date().toISOString()
+            }))
+          : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function persistCustomTemplates() {
+      localStorage.setItem(TEMPLATE_STORAGE_KEY, JSON.stringify(customTemplates));
+    }
+
+    function getDocumentHistory() {
+      const fileId = workspaceData.activeFileId;
+      if (!documentHistories.has(fileId)) documentHistories.set(fileId, { undo: [], redo: [], lastRecordedAt: 0 });
+      return documentHistories.get(fileId);
+    }
+
+    function updateHistoryButtons() {
+      const history = getDocumentHistory();
+      document.getElementById("undoButton").disabled = history.undo.length === 0;
+      document.getElementById("redoButton").disabled = history.redo.length === 0;
+    }
+
+    function recordDocumentChange(previous, next, force = false) {
+      if (previous === next) return;
+      const history = getDocumentHistory();
+      const now = Date.now();
+      if (force || !history.undo.length || now - history.lastRecordedAt > 700) {
+        if (history.undo[history.undo.length - 1] !== previous) history.undo.push(previous);
+        if (history.undo.length > 100) history.undo.shift();
+      }
+      history.redo = [];
+      history.lastRecordedAt = now;
+      updateHistoryButtons();
+    }
+
+    function undoDocumentChange() {
+      const history = getDocumentHistory();
+      if (!history.undo.length) return;
+      const previous = history.undo.pop();
+      history.redo.push(markdownDraft);
+      history.lastRecordedAt = 0;
+      setMarkdownContent(previous, "已撤销", { recordHistory: false });
+      updateHistoryButtons();
+    }
+
+    function redoDocumentChange() {
+      const history = getDocumentHistory();
+      if (!history.redo.length) return;
+      const next = history.redo.pop();
+      history.undo.push(markdownDraft);
+      history.lastRecordedAt = 0;
+      setMarkdownContent(next, "已重做", { recordHistory: false });
+      updateHistoryButtons();
+    }
+
+    function addVersionSnapshot(label, content = markdownDraft, force = false) {
+      const file = getActiveFile();
+      if (!file) return false;
+      if (!Array.isArray(file.versions)) file.versions = [];
+      if (!force && file.versions[0]?.content === content) return false;
+      file.versions.unshift(createVersionRecord(content, label));
+      file.versions = file.versions.slice(0, 20);
+      persistWorkspace();
+      return true;
+    }
+
+    function maybeAddAutoVersion() {
+      const file = getActiveFile();
+      const latest = file?.versions?.[0];
+      if (!file || latest?.content === markdownDraft) return;
+      const latestTime = latest ? new Date(latest.createdAt).getTime() : 0;
+      if (Date.now() - latestTime >= 60000) addVersionSnapshot("自动版本");
     }
 
     function loadModelConfig() {
@@ -1271,7 +1583,9 @@
       const editor = document.getElementById("markdownEditor");
       editor.value = markdownDraft;
       editor.addEventListener("input", () => {
-        markdownDraft = editor.value;
+        const next = editor.value;
+        recordDocumentChange(markdownDraft, next);
+        markdownDraft = next;
         state = parseMarkdown(markdownDraft);
         updateMarkdownStats();
         scheduleSave();
@@ -1297,10 +1611,12 @@
       const saveState = document.getElementById("saveState");
       saveState.textContent = "正在保存...";
       window.clearTimeout(saveTimer);
+      window.clearTimeout(versionTimer);
       saveTimer = window.setTimeout(() => {
         persistWorkspace();
         saveState.textContent = `已保存 · ${new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}`;
       }, 350);
+      versionTimer = window.setTimeout(maybeAddAutoVersion, 1200);
     }
 
     function textOrEmpty(value) {
@@ -1345,6 +1661,7 @@
       renderPreview();
       updateProgress();
       updateUndoButton();
+      updateHistoryButtons();
       renderPrdLibrary();
     }
 
@@ -1357,6 +1674,7 @@
       const target = workspaceData.files.find((file) => file.id === fileId);
       if (!target) return;
       window.clearTimeout(saveTimer);
+      window.clearTimeout(versionTimer);
       syncDraftToActiveFile();
       workspaceData.activeFileId = target.id;
       refreshActiveDocument();
@@ -1441,7 +1759,8 @@
     function ensureEditableFile() {
       if (workspaceData.files.length) return;
       const now = new Date().toISOString();
-      const file = { id: createId("file"), folderId: null, name: "未命名 PRD.md", content: blankMarkdown(), createdAt: now, updatedAt: now };
+      const content = blankMarkdown();
+      const file = { id: createId("file"), folderId: null, name: "未命名 PRD.md", content, createdAt: now, updatedAt: now, versions: [createVersionRecord(content, "初始版本", now)] };
       workspaceData.files.push(file);
       workspaceData.activeFileId = file.id;
     }
@@ -1460,6 +1779,7 @@
           syncDraftToActiveFile();
           workspaceData.files = workspaceData.files.filter((item) => item.id !== file.id);
           aiGenerationHistory.delete(file.id);
+          documentHistories.delete(file.id);
           ensureEditableFile();
           if (!workspaceData.files.some((item) => item.id === workspaceData.activeFileId)) workspaceData.activeFileId = workspaceData.files[0].id;
           refreshActiveDocument();
@@ -1486,7 +1806,10 @@
           const deletedIds = new Set(files.map((file) => file.id));
           workspaceData.folders = workspaceData.folders.filter((item) => item.id !== folder.id);
           workspaceData.files = workspaceData.files.filter((file) => !deletedIds.has(file.id));
-          deletedIds.forEach((id) => aiGenerationHistory.delete(id));
+          deletedIds.forEach((id) => {
+            aiGenerationHistory.delete(id);
+            documentHistories.delete(id);
+          });
           ensureEditableFile();
           if (!workspaceData.files.some((file) => file.id === workspaceData.activeFileId)) workspaceData.activeFileId = workspaceData.files[0].id;
           refreshActiveDocument();
@@ -1526,13 +1849,15 @@
         onConfirm: (name) => {
           syncDraftToActiveFile();
           const now = new Date().toISOString();
+          const content = blankMarkdown();
           const file = {
             id: createId("file"),
             folderId: workspaceData.folders.some((folder) => folder.id === targetFolderId) ? targetFolderId : null,
             name: normalizeFileName(name),
-            content: blankMarkdown(),
+            content,
             createdAt: now,
-            updatedAt: now
+            updatedAt: now,
+            versions: [createVersionRecord(content, "初始版本", now)]
           };
           workspaceData.files.push(file);
           workspaceData.activeFileId = file.id;
@@ -1605,6 +1930,151 @@
         rootFiles.forEach((file) => renderFileRow(file, tree));
       }
       lucide.createIcons();
+    }
+
+    let templateModalTrigger = null;
+    let versionModalTrigger = null;
+
+    function formatHistoryTime(value) {
+      return new Date(value).toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+    }
+
+    function applyTemplate(template) {
+      closeTemplateModal();
+      openLibraryDialog({
+        title: "应用 PRD 模板",
+        description: `将“${template.name}”应用到当前文件。当前内容会先保存到版本历史。`,
+        confirmLabel: "应用模板",
+        onConfirm: () => {
+          addVersionSnapshot("应用模板前", markdownDraft, true);
+          setMarkdownContent(template.content, `已应用“${template.name}”`);
+        }
+      });
+    }
+
+    function createTemplateItem(template, custom = false) {
+      const item = createElement("div", "template-item");
+      const copy = createElement("div", "template-copy");
+      copy.append(
+        createElement("div", "template-name", template.name),
+        createElement("div", "template-desc", custom ? `创建于 ${formatHistoryTime(template.createdAt)}` : template.description)
+      );
+      const actions = createElement("div", "template-actions");
+      const useButton = createElement("button", "button", "使用");
+      useButton.type = "button";
+      useButton.addEventListener("click", () => applyTemplate(template));
+      actions.appendChild(useButton);
+      if (custom) {
+        actions.appendChild(createTreeIconButton("trash-2", "删除模板", () => {
+          closeTemplateModal();
+          openLibraryDialog({
+            title: "删除自定义模板",
+            description: `“${template.name}”删除后无法恢复，不会影响已创建的 PRD 文件。`,
+            confirmLabel: "删除",
+            destructive: true,
+            onConfirm: () => {
+              customTemplates = customTemplates.filter((item) => item.id !== template.id);
+              persistCustomTemplates();
+              showToast("自定义模板已删除");
+            }
+          });
+        }, true));
+      }
+      item.append(copy, actions);
+      return item;
+    }
+
+    function renderTemplateLibrary() {
+      const builtinList = document.getElementById("builtinTemplateList");
+      const customList = document.getElementById("customTemplateList");
+      builtinList.replaceChildren(...BUILTIN_TEMPLATES.map((template) => createTemplateItem(template)));
+      customList.replaceChildren();
+      if (customTemplates.length) customList.append(...customTemplates.map((template) => createTemplateItem(template, true)));
+      else customList.appendChild(createElement("div", "version-empty", "暂无自定义模板"));
+      lucide.createIcons();
+    }
+
+    function openTemplateModal() {
+      templateModalTrigger = document.activeElement;
+      closeMoreMenu();
+      renderTemplateLibrary();
+      setModalOpen("templateModal", true);
+    }
+
+    function closeTemplateModal() {
+      setModalOpen("templateModal", false);
+      if (templateModalTrigger) templateModalTrigger.focus();
+    }
+
+    function saveCurrentAsTemplate() {
+      closeTemplateModal();
+      openLibraryDialog({
+        title: "存为自定义模板",
+        inputLabel: "模板名称",
+        initialValue: `${state.title || "未命名 PRD"} 模板`,
+        confirmLabel: "保存模板",
+        onConfirm: (name) => {
+          customTemplates.unshift({ id: createId("template"), name, content: markdownDraft, createdAt: new Date().toISOString() });
+          customTemplates = customTemplates.slice(0, 50);
+          persistCustomTemplates();
+          showToast("已保存为自定义模板");
+        }
+      });
+    }
+
+    function renderVersionHistory() {
+      const list = document.getElementById("versionHistoryList");
+      const versions = getActiveFile()?.versions || [];
+      list.replaceChildren();
+      if (!versions.length) {
+        list.appendChild(createElement("div", "version-empty", "暂无历史版本"));
+        return;
+      }
+      versions.forEach((version, index) => {
+        const item = createElement("div", "version-item");
+        const copy = createElement("div", "version-copy");
+        const title = version.content.match(/^#(?!#)\s+(.+)$/m)?.[1] || "未命名 PRD";
+        copy.append(
+          createElement("div", "version-name", `${version.label} · ${title}`),
+          createElement("div", "version-meta", `${formatHistoryTime(version.createdAt)}${index === 0 ? " · 最新" : ""}`)
+        );
+        const actions = createElement("div", "version-actions");
+        const restoreButton = createElement("button", "button", "还原");
+        restoreButton.type = "button";
+        restoreButton.addEventListener("click", () => {
+          closeVersionHistory();
+          openLibraryDialog({
+            title: "还原历史版本",
+            description: `还原到 ${formatHistoryTime(version.createdAt)} 的版本。当前内容会先自动备份。`,
+            confirmLabel: "确认还原",
+            onConfirm: () => {
+              addVersionSnapshot("还原前备份", markdownDraft, true);
+              setMarkdownContent(version.content, "历史版本已还原");
+            }
+          });
+        });
+        actions.appendChild(restoreButton);
+        item.append(copy, actions);
+        list.appendChild(item);
+      });
+    }
+
+    function openVersionHistory() {
+      versionModalTrigger = document.activeElement;
+      closeMoreMenu();
+      renderVersionHistory();
+      setModalOpen("versionHistoryModal", true);
+    }
+
+    function closeVersionHistory() {
+      setModalOpen("versionHistoryModal", false);
+      if (versionModalTrigger) versionModalTrigger.focus();
+    }
+
+    function saveCurrentVersion() {
+      addVersionSnapshot("手动保存", markdownDraft, true);
+      renderVersionHistory();
+      showToast("当前版本已保存");
     }
 
     function makePreviewEditable(element, value, metadata, label) {
@@ -1868,7 +2338,9 @@
       } else {
         lines[lineIndex] = `${element.dataset.mdPrefix || ""}${value}`;
       }
-      markdownDraft = lines.join("\n");
+      const next = lines.join("\n");
+      recordDocumentChange(markdownDraft, next);
+      markdownDraft = next;
       state = parseMarkdown(markdownDraft);
       document.getElementById("markdownEditor").value = markdownDraft;
       document.getElementById("projectTitle").textContent = textOrEmpty(state.title);
@@ -2391,13 +2863,16 @@
       showToast("Markdown 文件已下载");
     }
 
-    function setMarkdownContent(markdown, message) {
-      markdownDraft = typeof markdown === "string" ? markdown.trim() : "";
+    function setMarkdownContent(markdown, message, options = {}) {
+      const next = typeof markdown === "string" ? markdown.trim() : "";
+      if (options.recordHistory !== false) recordDocumentChange(markdownDraft, next, true);
+      markdownDraft = next;
       state = parseMarkdown(markdownDraft);
       document.getElementById("markdownEditor").value = markdownDraft;
       updateMarkdownStats();
       renderPreview();
       updateProgress();
+      updateHistoryButtons();
       persistWorkspace();
       closeMoreMenu();
       showToast(message);
@@ -2452,10 +2927,12 @@
         document.getElementById("aiChatForm").requestSubmit();
       }
     });
-    document.getElementById("menuExampleButton").addEventListener("click", () => {
-      clearAiHistory();
-      setMarkdownContent(DEFAULT_MARKDOWN, "已恢复默认脱敏案例");
-    });
+    document.getElementById("undoButton").addEventListener("click", undoDocumentChange);
+    document.getElementById("redoButton").addEventListener("click", redoDocumentChange);
+    document.getElementById("templateLibraryButton").addEventListener("click", openTemplateModal);
+    document.getElementById("menuTemplateButton").addEventListener("click", openTemplateModal);
+    document.getElementById("versionHistoryButton").addEventListener("click", openVersionHistory);
+    document.getElementById("menuVersionHistoryButton").addEventListener("click", openVersionHistory);
     document.getElementById("copyButton").addEventListener("click", copyMarkdown);
     document.getElementById("previewFullscreenButton").addEventListener("click", togglePreviewFullscreen);
     document.getElementById("downloadButton").addEventListener("click", downloadMarkdown);
@@ -2472,6 +2949,18 @@
     document.getElementById("libraryDialog").addEventListener("click", (event) => {
       if (event.target === event.currentTarget) closeLibraryDialog();
     });
+    document.getElementById("closeTemplateModal").addEventListener("click", closeTemplateModal);
+    document.getElementById("cancelTemplateModal").addEventListener("click", closeTemplateModal);
+    document.getElementById("saveAsTemplateButton").addEventListener("click", saveCurrentAsTemplate);
+    document.getElementById("templateModal").addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) closeTemplateModal();
+    });
+    document.getElementById("closeVersionHistory").addEventListener("click", closeVersionHistory);
+    document.getElementById("cancelVersionHistory").addEventListener("click", closeVersionHistory);
+    document.getElementById("saveVersionButton").addEventListener("click", saveCurrentVersion);
+    document.getElementById("versionHistoryModal").addEventListener("click", (event) => {
+      if (event.target === event.currentTarget) closeVersionHistory();
+    });
     document.getElementById("modelProvider").addEventListener("change", (event) => {
       const preset = MODEL_PRESETS[event.target.value];
       document.getElementById("modelEndpoint").value = preset.endpoint;
@@ -2485,8 +2974,23 @@
       event.currentTarget.setAttribute("aria-label", show ? "隐藏 API Key" : "显示 API Key");
     });
     document.addEventListener("keydown", (event) => {
+      const modifier = event.ctrlKey || event.metaKey;
+      const editingDocument = event.target.closest?.("#markdownEditor, #documentPreview");
+      if (modifier && editingDocument && event.key.toLowerCase() === "z") {
+        event.preventDefault();
+        if (event.shiftKey) redoDocumentChange();
+        else undoDocumentChange();
+        return;
+      }
+      if (modifier && editingDocument && event.key.toLowerCase() === "y") {
+        event.preventDefault();
+        redoDocumentChange();
+        return;
+      }
       if (event.key !== "Escape") return;
       if (document.getElementById("libraryDialog").classList.contains("open")) closeLibraryDialog();
+      else if (document.getElementById("templateModal").classList.contains("open")) closeTemplateModal();
+      else if (document.getElementById("versionHistoryModal").classList.contains("open")) closeVersionHistory();
       else if (document.getElementById("modelSettingsModal").classList.contains("open")) closeModelSettings();
       else if (document.querySelector(".preview-pane").classList.contains("preview-fullscreen")) setPreviewFullscreen(false);
     });
@@ -2502,6 +3006,7 @@
         confirmLabel: "清空",
         destructive: true,
         onConfirm: () => {
+          addVersionSnapshot("清空前备份", markdownDraft, true);
           clearAiHistory();
           setMarkdownContent("", "当前 PRD 已清空");
         }
