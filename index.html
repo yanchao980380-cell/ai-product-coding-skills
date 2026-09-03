@@ -232,7 +232,7 @@
     .pane-heading { margin-top: 6px; font-size: 23px; line-height: 1.3; }
     .pane-lead { max-width: 620px; margin-top: 8px; color: var(--color-text-muted); font-size: 12px; line-height: 1.7; }
     .editor-pane.markdown-mode { overflow: hidden; }
-    .markdown-workspace { display: grid; grid-template-rows: 48px minmax(0, 1fr); width: 100%; height: 100%; min-height: 0; }
+    .markdown-workspace { display: grid; grid-template-rows: 48px minmax(0, 1fr) minmax(250px, 1fr); width: 100%; height: 100%; min-height: 0; }
     .markdown-editor-header {
       display: flex;
       align-items: center;
@@ -267,6 +267,73 @@
     }
     .markdown-editor:hover { border-color: var(--color-border-strong); }
     .markdown-editor:focus { border-color: var(--color-accent); outline: 0; background: var(--color-surface); }
+    .ai-chat {
+      display: grid;
+      grid-template-rows: 44px minmax(0, 1fr) auto;
+      min-width: 0;
+      min-height: 0;
+      border-top: 1px solid var(--color-border-strong);
+      background: var(--color-surface);
+    }
+    .ai-chat-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 0 14px 0 18px;
+      border-bottom: 1px solid var(--color-border);
+    }
+    .ai-chat-title { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; }
+    .ai-chat-title .lucide { color: var(--color-accent); }
+    .ai-chat-messages { display: flex; flex-direction: column; gap: 8px; min-height: 0; padding: 12px 18px; overflow-y: auto; }
+    .ai-message {
+      width: fit-content;
+      max-width: 88%;
+      padding: 8px 10px;
+      border: 1px solid var(--color-border);
+      border-radius: 7px;
+      color: var(--color-text-muted);
+      font-size: 11px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+    .ai-message.user { align-self: flex-end; border-color: var(--color-border-strong); background: var(--color-input); color: var(--color-text); }
+    .ai-message.assistant { align-self: flex-start; }
+    .ai-message.error { border-color: var(--color-danger); color: var(--color-danger); }
+    .ai-chat-form { display: grid; gap: 8px; padding: 10px 14px 12px; border-top: 1px solid var(--color-border); }
+    .ai-chat-row { display: grid; grid-template-columns: 150px minmax(0, 1fr); gap: 8px; }
+    .chat-select, .chat-topic, .chat-points {
+      width: 100%;
+      border: 1px solid var(--color-border);
+      border-radius: 6px;
+      background: var(--color-input);
+      color: var(--color-text);
+      font-size: 11px;
+    }
+    .chat-select, .chat-topic { height: 34px; padding: 0 9px; }
+    .chat-points { height: 54px; padding: 8px 42px 8px 9px; line-height: 1.5; resize: none; }
+    .chat-select:focus, .chat-topic:focus, .chat-points:focus { border-color: var(--color-accent); outline: 0; background: var(--color-surface); }
+    .chat-topic::placeholder, .chat-points::placeholder { color: var(--color-text-muted); opacity: 0.7; }
+    .chat-composer { position: relative; }
+    .chat-submit {
+      position: absolute;
+      right: 6px;
+      bottom: 7px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid var(--color-accent);
+      border-radius: 6px;
+      background: var(--color-accent);
+      color: var(--color-accent-ink);
+      cursor: pointer;
+    }
+    .chat-submit:disabled { cursor: wait; opacity: 0.65; }
+    .chat-submit .chat-loader { display: none; }
+    .chat-submit.loading .chat-send-icon { display: none; }
+    .chat-submit.loading .chat-loader { display: inline; animation: spin 900ms linear infinite; }
+    .chat-error { display: none; color: var(--color-danger); font-size: 10px; }
+    .chat-error.show { display: block; }
 
     .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
     .form-section { padding: 25px 0; border-bottom: 1px solid var(--color-border); scroll-margin-top: 16px; }
@@ -419,19 +486,6 @@
     }
     .modal-title { font-size: 15px; }
     .modal-body { min-height: 0; padding: 18px 20px; overflow-y: auto; }
-    .modal-textarea {
-      width: 100%;
-      min-height: 390px;
-      padding: 14px;
-      border: 1px solid var(--color-border);
-      border-radius: 7px;
-      background: var(--color-input);
-      color: var(--color-text);
-      line-height: 1.7;
-      resize: vertical;
-    }
-    .modal-textarea:focus { border-color: var(--color-accent); outline: 0; }
-    .modal-textarea::placeholder { color: var(--color-text-muted); opacity: 0.68; }
     .modal-note { margin-top: 9px; color: var(--color-text-muted); font-size: 10px; }
     .modal-footer {
       display: flex;
@@ -476,29 +530,6 @@
     .model-status-button:hover { border-color: var(--color-border-strong); color: var(--color-text); }
     .model-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--color-secondary); }
     .model-status-button.configured .model-status-dot { background: var(--color-success); }
-    .generate-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
-    .generate-label { color: var(--color-text-muted); font-size: 11px; font-weight: 600; }
-    .generate-textarea { min-height: 230px; }
-    .segmented {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 3px;
-      padding: 3px;
-      border: 1px solid var(--color-border);
-      border-radius: 7px;
-      background: var(--color-input);
-    }
-    .segment {
-      min-height: 34px;
-      border: 0;
-      border-radius: 5px;
-      background: transparent;
-      color: var(--color-text-muted);
-      font-size: 11px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-    .segment.active { background: var(--color-surface-strong); color: var(--color-text); }
     .generation-error {
       display: none;
       margin-top: 10px;
@@ -510,7 +541,6 @@
       line-height: 1.6;
     }
     .generation-error.show { display: block; }
-    .button.loading svg { animation: spin 900ms linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .sidebar-backdrop { display: none; }
@@ -591,6 +621,10 @@
       .pane-inner { padding: 22px 18px 54px; overflow-x: hidden; }
       .markdown-editor-wrap { padding: 12px; }
       .markdown-editor { padding: 14px; font-size: 12px; }
+      .markdown-workspace { grid-template-rows: 44px minmax(0, 1fr) minmax(280px, 0.9fr); }
+      .ai-chat-header { padding-inline: 12px; }
+      .ai-chat-messages { padding: 10px 12px; }
+      .ai-chat-form { padding: 9px 12px 10px; }
       .pane-heading { font-size: 20px; }
       .preview-sticky { display: none; }
       .document { min-height: calc(100vh - 130px); margin-top: 14px; }
@@ -601,6 +635,7 @@
       .project-block { gap: 6px; }
       .project-title { width: 36vw; }
       .toolbar .button { display: none; }
+      .ai-chat-row { grid-template-columns: 128px minmax(0, 1fr); }
       .field-grid, .meta-row { grid-template-columns: 1fr; }
       .field.full { grid-column: auto; }
       .pane-inner { padding-inline: 14px; }
@@ -610,10 +645,7 @@
       .modal-backdrop { padding: 0; }
       .modal { width: 100%; height: 100%; max-height: none; border: 0; border-radius: 0; }
       .modal-body { padding: 14px; }
-      .modal-textarea { min-height: calc(100vh - 178px); resize: none; }
-      .generate-textarea { min-height: 230px; resize: vertical; }
       .modal-footer { padding-inline: 14px; }
-      .generate-topline { align-items: flex-start; flex-direction: column; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -683,12 +715,10 @@
         <div class="toolbar">
           <button class="icon-button" id="themeToggle" type="button" aria-label="切换明暗主题" title="切换主题"><i data-lucide="sun-moon"></i></button>
           <button class="icon-button" id="modelSettingsButton" type="button" aria-label="模型设置" title="模型设置"><i data-lucide="settings-2"></i></button>
-          <button class="button primary" id="aiGenerateButton" type="button"><i data-lucide="wand-sparkles"></i><span class="button-label">AI 生成</span></button>
           <button class="button" id="copyButton" type="button"><i data-lucide="copy"></i><span class="button-label">复制 PRD</span></button>
           <button class="icon-button" id="moreButton" type="button" aria-label="更多操作" aria-expanded="false"><i data-lucide="ellipsis"></i></button>
         </div>
         <div class="menu" id="moreMenu">
-          <button id="menuAiGenerateButton" type="button"><i data-lucide="wand-sparkles"></i>AI 生成 PRD</button>
           <button id="menuModelSettingsButton" type="button"><i data-lucide="settings-2"></i>模型设置</button>
           <div class="menu-divider"></div>
           <button id="menuExampleButton" type="button"><i data-lucide="sparkles"></i>恢复默认脱敏案例</button>
@@ -717,6 +747,35 @@
             <div class="markdown-editor-wrap">
               <textarea class="markdown-editor" id="markdownEditor" aria-label="PRD Markdown 内容" spellcheck="false"></textarea>
             </div>
+            <section class="ai-chat" aria-label="AI PRD 对话助手">
+              <header class="ai-chat-header">
+                <div class="ai-chat-title"><i data-lucide="sparkles"></i><span>AI PRD 助手</span></div>
+                <button class="model-status-button" id="chatModelStatus" type="button"><span class="model-status-dot"></span><span id="chatModelStatusText">未配置模型</span><i data-lucide="chevron-right"></i></button>
+              </header>
+              <div class="ai-chat-messages" id="chatMessages" aria-live="polite">
+                <div class="ai-message assistant">选择要补充的章节，输入主题和要点。</div>
+              </div>
+              <form class="ai-chat-form" id="aiChatForm">
+                <div class="ai-chat-row">
+                  <select class="chat-select" id="chatSection" aria-label="写入章节">
+                    <option value="background">1. 背景和场景</option>
+                    <option value="goal">2. 目标</option>
+                    <option value="scope">3. 需求范围</option>
+                    <option value="flow">4. 流程</option>
+                    <option value="analytics">5. 埋点</option>
+                    <option value="standards">6. 标准和指标</option>
+                  </select>
+                  <input class="chat-topic" id="chatTopic" aria-label="主题" placeholder="主题，例如：首次使用转化" autocomplete="off">
+                </div>
+                <div class="chat-composer">
+                  <textarea class="chat-points" id="chatPoints" aria-label="要点" placeholder="输入关键场景、约束或指标；Ctrl + Enter 发送"></textarea>
+                  <button class="chat-submit" id="chatSubmit" type="submit" aria-label="生成并写入章节" title="生成并写入章节">
+                    <i class="chat-send-icon" data-lucide="arrow-up"></i><i class="chat-loader" data-lucide="loader-circle"></i>
+                  </button>
+                </div>
+                <div class="chat-error" id="chatError" role="alert"></div>
+              </form>
+            </section>
           </div>
         </section>
 
@@ -732,35 +791,6 @@
         </section>
       </div>
     </main>
-  </div>
-
-  <div class="modal-backdrop" id="generateModal" aria-hidden="true">
-    <section class="modal compact" role="dialog" aria-modal="true" aria-labelledby="generateModalTitle">
-      <header class="modal-header">
-        <h2 class="modal-title" id="generateModalTitle">AI 生成 PRD</h2>
-        <button class="icon-button" id="closeGenerateModal" type="button" aria-label="关闭 AI 生成窗口"><i data-lucide="x"></i></button>
-      </header>
-      <div class="modal-body">
-        <div class="generate-topline">
-          <span class="generate-label">需求类型</span>
-          <button class="model-status-button" id="generateModelStatus" type="button"><span class="model-status-dot"></span><span id="generateModelStatusText">未配置模型</span><i data-lucide="chevron-right"></i></button>
-        </div>
-        <div class="segmented" role="group" aria-label="需求类型">
-          <button class="segment active" type="button" data-generation-mode="mvp" aria-pressed="true">新产品 MVP</button>
-          <button class="segment" type="button" data-generation-mode="iteration" aria-pressed="false">日常功能迭代</button>
-        </div>
-        <label class="field" style="margin-top: 16px">
-          <span class="field-label">产品想法或原始需求 <span class="required">*</span></span>
-          <textarea class="modal-textarea generate-textarea" id="generationBrief" placeholder="例如：在产品 A 中增加功能 A，用户上传素材后生成处理结果；免费用户每天可体验 2 次。"></textarea>
-        </label>
-        <p class="modal-note">点击生成会将上述需求发送给当前配置的模型服务商。</p>
-        <div class="generation-error" id="generationError" role="alert"></div>
-      </div>
-      <footer class="modal-footer">
-        <button class="button" id="cancelGeneration" type="button">取消</button>
-        <button class="button primary" id="confirmGeneration" type="button"><i data-lucide="loader-circle"></i><span id="generationButtonText">生成 PRD</span></button>
-      </footer>
-    </section>
   </div>
 
   <div class="modal-backdrop" id="modelSettingsModal" aria-hidden="true">
@@ -817,6 +847,45 @@
       deepseek: { label: "DeepSeek", endpoint: "https://api.deepseek.com/chat/completions", model: "deepseek-chat" },
       custom: { label: "自定义", endpoint: "", model: "" }
     };
+    const PRD_SECTIONS = {
+      background: {
+        index: 1,
+        title: "背景和场景",
+        aliases: ["背景和场景", "背景", "场景"],
+        template: "- 用户与场景：\n- 当前问题：\n- 触发时机："
+      },
+      goal: {
+        index: 2,
+        title: "目标",
+        aliases: ["目标", "产品目标"],
+        template: "- 用户目标：\n- 业务目标：\n- 非目标："
+      },
+      scope: {
+        index: 3,
+        title: "需求范围",
+        aliases: ["需求范围", "范围", "功能范围"],
+        template: "- 输入：\n- 核心能力：\n- 输出：\n- 约束：\n- MVP 不包含："
+      },
+      flow: {
+        index: 4,
+        title: "流程",
+        aliases: ["流程", "用户流程", "核心流程"],
+        template: "- 主流程：\n- 异常与空状态：\n- 失败后的动作："
+      },
+      analytics: {
+        index: 5,
+        title: "埋点",
+        aliases: ["埋点", "数据埋点", "事件埋点"],
+        template: "| 事件 | 触发时机 | 必要属性 |\n| --- | --- | --- |\n| feature_view | 进入功能 | entry |"
+      },
+      standards: {
+        index: 6,
+        title: "标准和指标",
+        aliases: ["标准和指标", "标准与指标", "验收标准", "指标"],
+        template: "- 功能验收：\n- AI 质量：\n- 性能：\n- 业务指标：\n- 风险指标："
+      }
+    };
+    const PRD_SECTION_ORDER = Object.keys(PRD_SECTIONS);
 
     const blankState = () => ({
       title: "未命名产品需求",
@@ -928,9 +997,7 @@
     let markdownDraft = loadMarkdown();
     let state = parseMarkdown(markdownDraft);
     let modelConfig = loadModelConfig();
-    let generationMode = "mvp";
-    let generationController = null;
-    let settingsReturnToGenerate = false;
+    let chatController = null;
     let saveTimer;
     let toastTimer;
 
@@ -1227,7 +1294,6 @@
       return result;
     }
 
-    let generateModalTrigger = null;
     let settingsModalTrigger = null;
 
     function setModalOpen(id, open) {
@@ -1243,17 +1309,17 @@
 
     function updateModelStatus() {
       const configured = Boolean(modelConfig.endpoint && modelConfig.model && getModelApiKey());
-      const status = document.getElementById("generateModelStatus");
+      const status = document.getElementById("chatModelStatus");
       status.classList.toggle("configured", configured);
-      document.getElementById("generateModelStatusText").textContent = configured
+      document.getElementById("chatModelStatusText").textContent = configured
         ? `${MODEL_PRESETS[modelConfig.provider]?.label || "自定义"} · ${modelConfig.model}`
         : "未配置模型";
       document.getElementById("modelSettingsButton").title = configured ? `模型设置：${modelConfig.model}` : "模型设置";
       return configured;
     }
 
-    function setGenerationError(message) {
-      const error = document.getElementById("generationError");
+    function setChatError(message) {
+      const error = document.getElementById("chatError");
       error.textContent = message;
       error.classList.toggle("show", Boolean(message));
     }
@@ -1264,26 +1330,9 @@
       error.classList.toggle("show", Boolean(message));
     }
 
-    function openGenerateModal() {
-      generateModalTrigger = document.activeElement;
-      closeMoreMenu();
-      setGenerationError("");
-      updateModelStatus();
-      setModalOpen("generateModal", true);
-      window.setTimeout(() => document.getElementById("generationBrief").focus(), 0);
-    }
-
-    function closeGenerateModal() {
-      if (generationController) generationController.abort();
-      setModalOpen("generateModal", false);
-      if (generateModalTrigger) generateModalTrigger.focus();
-    }
-
-    function openModelSettings(fromGenerate = false) {
+    function openModelSettings() {
       settingsModalTrigger = document.activeElement;
-      settingsReturnToGenerate = fromGenerate;
       closeMoreMenu();
-      if (fromGenerate) setModalOpen("generateModal", false);
       document.getElementById("modelProvider").value = modelConfig.provider || "custom";
       document.getElementById("modelEndpoint").value = modelConfig.endpoint || "";
       document.getElementById("modelName").value = modelConfig.model || "";
@@ -1296,12 +1345,7 @@
 
     function closeModelSettings() {
       setModalOpen("modelSettingsModal", false);
-      if (settingsReturnToGenerate) {
-        settingsReturnToGenerate = false;
-        openGenerateModal();
-      } else if (settingsModalTrigger) {
-        settingsModalTrigger.focus();
-      }
+      if (settingsModalTrigger) settingsModalTrigger.focus();
     }
 
     function saveModelSettings() {
@@ -1334,70 +1378,31 @@
       closeModelSettings();
     }
 
-    function buildGenerationMessages(brief) {
-      const typeInstruction = generationMode === "mvp"
-        ? "这是新产品 MVP，只保留验证核心价值必需的范围。"
-        : "这是日常功能迭代，强调对现有流程的影响、兼容和上线验证。";
-      const systemPrompt = `你是一名资深 AI 产品经理。请把用户需求整理成超精简、可开发、可验收的中文 PRD。
-只输出 Markdown 正文，不要解释，不要使用代码围栏。严格使用下面结构和字段名：
+    function buildSectionMessages(sectionKey, topic, points) {
+      const section = PRD_SECTIONS[sectionKey];
+      const systemPrompt = `你是一名资深 AI 产品经理。请根据用户提供的主题、要点和当前 PRD，只完善指定章节。
+只输出该章节的 Markdown，不要解释，不要使用代码围栏，也不要输出其他章节。
+章节标题和字段必须严格使用以下格式：
 
-# 产品需求名称
+## ${section.index}. ${section.title}
 
-负责人：待补充
-版本：MVP
+${section.template}
 
-## 1. 背景和场景
-- 用户与场景：
-- 当前问题：
-- 触发时机：
-
-## 2. 目标
-- 用户目标：
-- 业务目标：
-- 非目标：
-
-## 3. 需求范围
-- 输入：
-- 核心能力：
-- 输出：
-- 约束：
-- MVP 不包含：
-
-## 4. 流程
-- 主流程：
-- 异常与空状态：
-- 失败后的动作：
-
-## 5. 埋点
-| 事件 | 触发时机 | 必要属性 |
-| --- | --- | --- |
-| feature_view | 进入功能 | entry |
-| feature_submit | 提交任务 | input_type, plan |
-| feature_result | 结果返回 | status, latency_ms |
-| feature_export | 使用结果 | export_type |
-| feature_error | 任务失败 | error_code, retryable |
-
-## 6. 标准和指标
-- 功能验收：
-- AI 质量：
-- 性能：
-- 业务指标：
-- 风险指标：
-
-把缺失信息作为最小合理假设写入对应字段，并标注“假设”。指标使用可衡量阈值。涉及 AI 时覆盖输入校验、模型失败、时延、成本或额度、安全与隐私。`;
+内容要精简、可开发、可验收。缺失信息可做最小合理假设，并明确标注“假设”。指标尽量使用可衡量阈值；涉及 AI 时考虑输入校验、模型失败、时延、成本或额度、安全与隐私。`;
       return [
         { role: "system", content: systemPrompt },
-        { role: "user", content: `${typeInstruction}\n\n原始需求：\n${brief}` }
+        { role: "user", content: `主题：${topic}\n\n要点：\n${points}\n\n当前 PRD：\n${markdownDraft || "（空白）"}` }
       ];
     }
 
-    function setGenerationBusy(busy) {
-      const button = document.getElementById("confirmGeneration");
+    function setChatBusy(busy) {
+      const button = document.getElementById("chatSubmit");
       button.disabled = busy;
       button.classList.toggle("loading", busy);
-      document.getElementById("generationButtonText").textContent = busy ? "生成中..." : "生成 PRD";
-      document.getElementById("generateModelStatus").disabled = busy;
-      document.getElementById("generationBrief").disabled = busy;
+      document.getElementById("chatModelStatus").disabled = busy;
+      document.getElementById("chatSection").disabled = busy;
+      document.getElementById("chatTopic").disabled = busy;
+      document.getElementById("chatPoints").disabled = busy;
     }
 
     function generationErrorMessage(error, status) {
@@ -1408,22 +1413,102 @@
       return (error.message || "生成失败，请检查模型设置后重试。").slice(0, 180);
     }
 
-    async function generatePrdWithModel() {
-      const brief = document.getElementById("generationBrief").value.trim();
-      if (!brief) {
-        setGenerationError("请先填写产品想法或原始需求。");
-        document.getElementById("generationBrief").focus();
+    function headingSectionKey(line) {
+      const match = line.match(/^##(?!#)\s+(.+)$/);
+      if (!match) return "";
+      const title = match[1].replace(/^\d+\s*[.、)]\s*/, "").trim();
+      return PRD_SECTION_ORDER.find((key) => PRD_SECTIONS[key].aliases.includes(title)) || "";
+    }
+
+    function normalizeGeneratedSection(markdown, sectionKey) {
+      const section = PRD_SECTIONS[sectionKey];
+      const clean = markdown.trim().replace(/^```(?:markdown)?\s*/i, "").replace(/\s*```$/, "");
+      const lines = clean.replace(/\r\n/g, "\n").split("\n");
+      const firstHeading = lines.findIndex((line) => /^##(?!#)\s+/.test(line));
+      let body = lines;
+      if (firstHeading >= 0) {
+        const nextHeading = lines.findIndex((line, index) => index > firstHeading && /^##(?!#)\s+/.test(line));
+        body = lines.slice(firstHeading + 1, nextHeading >= 0 ? nextHeading : undefined);
+      }
+      const bodyText = body.join("\n").trim();
+      if (!bodyText) throw new Error("模型没有返回可用的章节内容。");
+      return `## ${section.index}. ${section.title}\n\n${bodyText}\n`;
+    }
+
+    function replacePrdSection(markdown, sectionKey, generatedSection) {
+      const lines = markdown.replace(/\r\n/g, "\n").split("\n");
+      const targetIndex = PRD_SECTIONS[sectionKey].index;
+      let start = -1;
+      let end = lines.length;
+      let insertionPoint = lines.length;
+
+      for (let index = 0; index < lines.length; index += 1) {
+        const foundKey = headingSectionKey(lines[index]);
+        if (!foundKey) continue;
+        if (foundKey === sectionKey) {
+          start = index;
+          end = lines.findIndex((line, nextIndex) => nextIndex > index && /^##(?!#)\s+/.test(line));
+          if (end < 0) end = lines.length;
+          break;
+        }
+        if (start < 0 && PRD_SECTIONS[foundKey].index > targetIndex && insertionPoint === lines.length) {
+          insertionPoint = index;
+        }
+      }
+
+      if (start >= 0) lines.splice(start, end - start, generatedSection);
+      else lines.splice(insertionPoint, 0, generatedSection);
+      return lines.join("\n").replace(/\n{3,}/g, "\n\n").trim();
+    }
+
+    function appendChatMessage(role, text) {
+      const message = document.createElement("div");
+      message.className = `ai-message ${role}`;
+      message.textContent = text;
+      const messages = document.getElementById("chatMessages");
+      messages.appendChild(message);
+      messages.scrollTop = messages.scrollHeight;
+      return message;
+    }
+
+    function selectGeneratedSection(sectionKey) {
+      const editor = document.getElementById("markdownEditor");
+      const heading = `## ${PRD_SECTIONS[sectionKey].index}. ${PRD_SECTIONS[sectionKey].title}`;
+      const start = editor.value.indexOf(heading);
+      if (start < 0) return;
+      const next = editor.value.indexOf("\n## ", start + heading.length);
+      editor.focus();
+      editor.setSelectionRange(start, next < 0 ? editor.value.length : next);
+    }
+
+    async function generateSectionWithModel(event) {
+      event.preventDefault();
+      const sectionKey = document.getElementById("chatSection").value;
+      const section = PRD_SECTIONS[sectionKey];
+      const topic = document.getElementById("chatTopic").value.trim();
+      const points = document.getElementById("chatPoints").value.trim();
+      if (!topic) {
+        setChatError("请先填写主题。");
+        document.getElementById("chatTopic").focus();
+        return;
+      }
+      if (!points) {
+        setChatError("请至少填写一个要点。");
+        document.getElementById("chatPoints").focus();
         return;
       }
       if (!updateModelStatus()) {
-        openModelSettings(true);
+        setChatError("请先完成模型设置。");
+        openModelSettings();
         return;
       }
 
-      setGenerationError("");
-      setGenerationBusy(true);
-      generationController = new AbortController();
-      const timeout = window.setTimeout(() => generationController?.abort(), 120000);
+      setChatError("");
+      appendChatMessage("user", `${section.title} · ${topic}\n${points}`);
+      const pendingMessage = appendChatMessage("assistant", `正在整理「${section.title}」...`);
+      setChatBusy(true);
+      chatController = new AbortController();
+      const timeout = window.setTimeout(() => chatController?.abort(), 120000);
       let responseStatus = 0;
       try {
         const response = await fetch(modelConfig.endpoint, {
@@ -1432,36 +1517,31 @@
             "Content-Type": "application/json",
             "Authorization": `Bearer ${getModelApiKey()}`
           },
-          body: JSON.stringify({ model: modelConfig.model, messages: buildGenerationMessages(brief), temperature: 0.2 }),
-          signal: generationController.signal
+          body: JSON.stringify({ model: modelConfig.model, messages: buildSectionMessages(sectionKey, topic, points), temperature: 0.2 }),
+          signal: chatController.signal
         });
         responseStatus = response.status;
         const payload = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(payload.error?.message || `模型接口返回 ${response.status}`);
-        let markdown = payload.choices?.[0]?.message?.content;
-        if (Array.isArray(markdown)) markdown = markdown.map((part) => part.text || "").join("");
-        if (typeof markdown !== "string" || !markdown.trim()) throw new Error("模型没有返回可用内容。");
-        markdown = markdown.trim().replace(/^```(?:markdown)?\s*/i, "").replace(/\s*```$/, "");
-        const generated = parseMarkdown(markdown);
-        const recognizedSections = [
-          generated.background.userScenario,
-          generated.goal.userGoal,
-          generated.scope.capability,
-          generated.flow.main,
-          generated.standards.functional
-        ].filter(Boolean).length;
-        if (recognizedSections < 3) throw new Error("模型返回的 PRD 结构无法识别，请重试或使用 Markdown 导入。");
-        generationController = null;
-        setMarkdownContent(markdown, "AI PRD 已生成，可继续编辑");
-        document.getElementById("generationBrief").value = "";
-        setModalOpen("generateModal", false);
-        toggleMobilePreview(false);
+        let content = payload.choices?.[0]?.message?.content;
+        if (Array.isArray(content)) content = content.map((part) => part.text || "").join("");
+        if (typeof content !== "string" || !content.trim()) throw new Error("模型没有返回可用内容。");
+        const generatedSection = normalizeGeneratedSection(content, sectionKey);
+        const updatedMarkdown = replacePrdSection(markdownDraft, sectionKey, generatedSection);
+        chatController = null;
+        setMarkdownContent(updatedMarkdown, `已更新「${section.title}」`);
+        pendingMessage.textContent = `已生成并写入「${section.title}」，可在上方继续编辑。`;
+        document.getElementById("chatPoints").value = "";
+        selectGeneratedSection(sectionKey);
       } catch (error) {
-        setGenerationError(generationErrorMessage(error, responseStatus));
+        const message = generationErrorMessage(error, responseStatus);
+        pendingMessage.textContent = message;
+        pendingMessage.classList.add("error");
+        setChatError(message);
       } finally {
         window.clearTimeout(timeout);
-        generationController = null;
-        setGenerationBusy(false);
+        chatController = null;
+        setChatBusy(false);
       }
     }
 
@@ -1503,11 +1583,6 @@
       showToast(message);
     }
 
-    function closeMoreMenu() {
-      document.getElementById("moreMenu").classList.remove("open");
-      document.getElementById("moreButton").setAttribute("aria-expanded", "false");
-    }
-
     function showToast(message) {
       document.getElementById("toastText").textContent = message;
       const toast = document.getElementById("toast");
@@ -1532,33 +1607,22 @@
 
     document.getElementById("themeToggle").addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
     document.getElementById("menuThemeButton").addEventListener("click", () => applyTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark"));
-    document.getElementById("aiGenerateButton").addEventListener("click", openGenerateModal);
-    document.getElementById("menuAiGenerateButton").addEventListener("click", openGenerateModal);
-    document.getElementById("modelSettingsButton").addEventListener("click", () => openModelSettings(false));
-    document.getElementById("menuModelSettingsButton").addEventListener("click", () => openModelSettings(false));
+    document.getElementById("modelSettingsButton").addEventListener("click", openModelSettings);
+    document.getElementById("menuModelSettingsButton").addEventListener("click", openModelSettings);
+    document.getElementById("chatModelStatus").addEventListener("click", openModelSettings);
+    document.getElementById("aiChatForm").addEventListener("submit", generateSectionWithModel);
+    document.getElementById("chatPoints").addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        document.getElementById("aiChatForm").requestSubmit();
+      }
+    });
     document.getElementById("menuExampleButton").addEventListener("click", () => setMarkdownContent(DEFAULT_MARKDOWN, "已恢复默认脱敏案例"));
     document.getElementById("copyButton").addEventListener("click", copyMarkdown);
     document.getElementById("menuCopyButton").addEventListener("click", copyMarkdown);
     document.getElementById("previewCopyButton").addEventListener("click", copyMarkdown);
     document.getElementById("downloadButton").addEventListener("click", downloadMarkdown);
     document.getElementById("previewDownloadButton").addEventListener("click", downloadMarkdown);
-    document.getElementById("closeGenerateModal").addEventListener("click", closeGenerateModal);
-    document.getElementById("cancelGeneration").addEventListener("click", closeGenerateModal);
-    document.getElementById("confirmGeneration").addEventListener("click", generatePrdWithModel);
-    document.getElementById("generateModelStatus").addEventListener("click", () => openModelSettings(true));
-    document.getElementById("generateModal").addEventListener("click", (event) => {
-      if (event.target === event.currentTarget) closeGenerateModal();
-    });
-    document.querySelectorAll("[data-generation-mode]").forEach((button) => {
-      button.addEventListener("click", () => {
-        generationMode = button.dataset.generationMode;
-        document.querySelectorAll("[data-generation-mode]").forEach((option) => {
-          const active = option === button;
-          option.classList.toggle("active", active);
-          option.setAttribute("aria-pressed", String(active));
-        });
-      });
-    });
     document.getElementById("closeModelSettings").addEventListener("click", closeModelSettings);
     document.getElementById("cancelModelSettings").addEventListener("click", closeModelSettings);
     document.getElementById("saveModelSettings").addEventListener("click", saveModelSettings);
@@ -1580,7 +1644,6 @@
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
       if (document.getElementById("modelSettingsModal").classList.contains("open")) closeModelSettings();
-      else if (document.getElementById("generateModal").classList.contains("open")) closeGenerateModal();
     });
     document.getElementById("blankButton").addEventListener("click", () => setMarkdownContent(blankMarkdown(), "已新建空白 PRD"));
     document.getElementById("clearButton").addEventListener("click", () => {

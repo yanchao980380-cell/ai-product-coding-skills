@@ -6,7 +6,7 @@
 
 [打开 AI PM 工作台](https://yanchao980380-cell.github.io/ai-product-coding-skills/)
 
-当前已完成第一个环节：PRD 制作。支持 Markdown 直接编辑、配置 OpenAI-compatible 大模型并在线生成 PRD、实时预览、自动保存、默认脱敏案例，以及复制和下载 Markdown。
+当前已完成第一个环节：PRD 制作。支持 Markdown 直接编辑、通过 AI 对话按章节生成和改写内容、配置 OpenAI-compatible 大模型、实时预览、自动保存、默认脱敏案例，以及复制和下载 Markdown。
 
 ## 当前内容
 
