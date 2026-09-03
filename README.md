@@ -2,9 +2,16 @@
 
 面向 AI 产品经理、设计师和工程师的可复用 Codex skills，目标是把 AI 产品想法更快变成可验证的 MVP。
 
+## 在线工作台
+
+[打开 AI PM 工作台](https://yanchao980380-cell.github.io/ai-product-coding-skills/)
+
+当前已完成第一个环节：PRD 制作。支持六模块编辑、实时预览、自动保存、AI 换脸示例、复制和下载 Markdown。
+
 ## 当前内容
 
 ```text
+index.html
 skills/
 ├── ai-product-prd/
 │   ├── SKILL.md
